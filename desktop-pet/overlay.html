@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src file:; script-src 'self'; style-src 'self'">
+<title>Hamster</title>
+<link rel="stylesheet" href="overlay.css">
+<link rel="stylesheet" href="wardrobe.css">
+<script src="assets/wardrobe.js" defer></script>
+<script src="assets/clips.js" defer></script>
+<script src="assets/rig.js" defer></script>
+<script src="assets/outline.js" defer></script>
+<script src="assets/reward-occlusion.js" defer></script>
+<script src="overlay.js" defer></script>
+<script src="wardrobe-ui.js" defer></script>
+</head>
+<body>
+<main id="wardrobe-panel" hidden></main>
+<div id="stage">
+<div id="pet">
+  <canvas id="motion" role="img" aria-label="Hamster"></canvas>
+  <svg viewBox="0 0 512 512" aria-hidden="true">
+    <defs>
+      <mask id="torso-mask" x="0" y="0" width="512" height="512" maskUnits="userSpaceOnUse">
+        <rect id="torso-visible" width="512" height="512" fill="white"/>
+        <path id="torso-foreground" fill="black"/>
+      </mask>
+    </defs>
+    <g mask="url(#torso-mask)">
+      <g id="neck-track"><image id="neck" width="240" height="200" display="none"/></g>
+    </g>
+    <g id="accessories">
+      <image id="face" width="240" height="200" display="none"/>
+      <image id="hat" width="240" height="200" display="none"/>
+    </g>
+  </svg>
+</div>
+<output id="work-count" hidden></output>
+<output id="gift-received" hidden></output>
+</div>
+</body>
+</html>

@@ -1,0 +1,14 @@
+name: Idea / 아이디어
+description: Suggest an outfit, a motion, an AI tool to support, or anything else. / 옷, 동작, 지원할 AI 도구 등을 제안해 주세요.
+labels: [idea]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: Your idea / 아이디어
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why would it help? / 어떤 점이 좋아지나요?

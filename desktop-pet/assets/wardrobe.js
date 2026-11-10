@@ -1,0 +1,62 @@
+globalThis.Hamster = globalThis.Hamster || {};
+
+const wardrobeTrialReleaseAt = '2026-11-07T15:00:00Z';
+
+Hamster.wardrobe = {
+  rig: 'hamster-v1',
+  viewBox: '0 0 240 200',
+  edgeY: 168,
+  slots: {hat:'머리',face:'얼굴',neck:'목'},
+  items: [
+    ['hat','knit','이끼색 니트 모자'],['hat','reader','남색 베레모'],['hat','nightcap','라벤더 잠옷 모자'],['hat','rain','노란 비 모자'],
+    ['hat','garden','꽃 장식 버킷햇'],['hat','paint','테라코타 베레모'],['hat','headphones','크림 헤드폰'],['hat','bow','체크 리본'],
+    ['face','round','둥근 안경'],['face','oval','타원 안경'],['face','half','반달 안경'],['face','sage','세이지 안경'],
+    ['face','gold','금테 안경'],['face','star','볼 별 스티커'],['face','flower','볼 꽃 스티커'],['face','patch','작은 밴드'],
+    ['face','first-gift','첫 선물 볼 스티커',null,null,null,
+      '함께 일한 첫 20분을 기념하는 작은 살구색 하트.', 'A little apricot heart for your first twenty minutes together.',true],
+    ['neck','rust','주황 목도리','scarf'],['neck','cream','크림 손수건'],['neck','lilac','라벤더 칼라'],['neck','yellow','노란 우비 칼라'],
+    ['neck','dots','물방울 목도리','scarf'],['neck','blue','하늘색 목도리','scarf'],['neck','green','초록 나비넥타이'],['neck','berry','자주색 손수건'],
+    ['hat','window-cap','창틀 스티치 모자',null,36,'2026-11-07T15:00:00Z',
+      '따뜻한 황토색 챙에 작은 창틀 자수가 들어간 작업모.', 'An ochre work cap with a little embroidered window.'],
+    ['face','pencil-dot','연필 볼 스티커',null,12,'2026-11-07T15:00:00Z',
+      '크림색 볼 패치에 작은 연필을 그렸어요.', 'A tiny pencil on a cream cheek patch.'],
+    ['neck','constellation-wrap','별자리 목도리','scarf',180,'2026-11-09T01:00:00Z',
+      '몸통 양옆을 감싸는 자주색 천에 별자리를 수놓았어요.', 'A plum scarf that wraps around the body, stitched with constellations.'],
+    ['hat','corduroy-work-cap','코듀로이 작업모',null,36,wardrobeTrialReleaseAt,
+      '세로 골이 도드라지는 테라코타 작업모.', 'A terracotta work cap with corduroy ribs.'],
+    ['hat','brass-double-brim','황동 겹챙 작업모',null,90,wardrobeTrialReleaseAt,
+      '두 겹 챙과 작은 황동 단추가 달린 모자.', 'A double-brim cap with a brass button.'],
+    ['hat','translucent-rain-brim','반투명 챙 비 모자',null,36,wardrobeTrialReleaseAt,
+      '빛이 살짝 비치는 민트색 챙이 달린 비 모자.', 'A rain hat with a mint translucent brim.'],
+    ['hat','navy-nightcap','남색 별 잠옷 모자',null,36,wardrobeTrialReleaseAt,
+      '작은 별과 폼폼이 달린 남색 잠옷 모자.', 'A navy nightcap with a star and a pom-pom.'],
+    ['hat','laundry-day','빨래날 팬티 모자',null,12,wardrobeTrialReleaseAt,
+      '빨래를 개다가 줄무늬 팬티를 모자로 써 버렸어요.', 'A tiny pair of striped briefs, worn as a hat on laundry day.'],
+    ['face','moon-patch','초승달 볼 패치',null,12,wardrobeTrialReleaseAt,
+      '보랏빛 패치 위에 뜬 작은 초승달.', 'A small crescent on a violet cheek patch.'],
+    ['face','moonlight-glasses','달빛 테 안경',null,36,wardrobeTrialReleaseAt,
+      '달빛을 닮은 보랏빛 테와 투명한 렌즈.', 'Violet moonlit frames with clear lenses.'],
+    ['face','raindrop-patch','빗방울 볼 스티커',null,12,wardrobeTrialReleaseAt,
+      '볼에 얹는 작은 민트색 빗방울.', 'A small mint raindrop for the cheek.'],
+    ['face','toast','버터 토스트 볼 스티커',null,12,wardrobeTrialReleaseAt,
+      '버터 한 조각을 얹은 토스트가 볼에 붙었어요.', 'A cheek sticker shaped like a little slice of buttered toast.'],
+    ['neck','pencil-bandana','연필 자수 손수건',null,12,wardrobeTrialReleaseAt,
+      '청회색 천 가운데 작은 연필을 수놓았어요.', 'A slate-blue bandana with an embroidered pencil.'],
+    ['neck','rain-folded-collar','접힌 우비 칼라',null,36,wardrobeTrialReleaseAt,
+      '세이지색 옷깃을 양쪽으로 접은 우비 칼라.', 'A sage rain collar with two folded edges.'],
+    ['neck','ink-bandana','잉크색 손수건',null,12,wardrobeTrialReleaseAt,
+      '짙은 잉크색 천에 작은 마름모를 수놓았어요.', 'An ink-blue bandana with a small stitched diamond.'],
+  ].map(([slot,id,name,fit,price,releaseAt,description,descriptionEn,giftOnly])=>({
+    slot,id,name,fit,price,releaseAt,description,descriptionEn,giftOnly,src:'assets/accessories/'+slot+'-'+id+'.svg',
+  })),
+  presets: [
+    {id:'bare',name:'기본',items:{}},
+    {id:'cozy',name:'포근한 날',items:{hat:'knit',face:'round',neck:'rust'}},
+    {id:'reading',name:'독서 시간',items:{hat:'reader',face:'round',neck:'cream'}},
+    {id:'sleepy',name:'졸린 밤',items:{hat:'nightcap',neck:'lilac'}},
+    {id:'rainy',name:'비 오는 날',items:{hat:'rain',neck:'yellow'}},
+    {id:'gardening',name:'정원사',items:{hat:'garden',neck:'cream'}},
+    {id:'painting',name:'화가',items:{hat:'paint',neck:'dots'}},
+    {id:'music',name:'음악 시간',items:{hat:'headphones',neck:'blue'}}
+  ]
+};
