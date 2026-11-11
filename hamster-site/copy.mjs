@@ -66,8 +66,8 @@ export const copy = {
         { id: 'connect', heading: '4. AI 도구 연결', html: `
       <p>메뉴 막대의 Hamster 아이콘에서 <strong>AI 연결</strong> → 쓰는 도구 → <strong>훅 설치…</strong>를 눌러요. 도구마다 따로 연결해요. Hamster는 아래 파일에 자기 훅만 추가하고, 다른 설정과 훅은 그대로 둬요. 파일이 없으면 새로 만들고, 저장할 때 들여쓰기가 바뀔 수 있어요.</p>
       {{table}}
-      <p class="small">CODEX_HOME, CLAUDE_CONFIG_DIR, GEMINI_CLI_HOME 환경 변수를 설정했다면 그 폴더를 써요. 각 폴더의 <code>hamster</code> 폴더에는 작은 도우미 프로그램(Codex는 <code>codex-hook-v2</code>, 나머지는 <code>ai-hook-v2</code>)이 복사되고, 훅이 그 프로그램을 가리켜요.</p>
-      <p>Codex는 설치 뒤 Settings → Hooks에서 Hamster 훅을 승인해야 해요. Claude Code와 Gemini CLI는 새 세션에서 <code>/hooks</code>(Gemini는 <code>/hooks list</code>)로 확인해요. Cursor는 Hooks 설정에서 확인해요.</p>` },
+      <p class="small">CODEX_HOME, CLAUDE_CONFIG_DIR, GEMINI_CLI_HOME, GROK_HOME 환경 변수를 설정했다면 그 폴더를 써요. 각 폴더의 <code>hamster</code> 폴더에는 작은 도우미 프로그램(<code>codex-hook-v2</code>, <code>ai-hook-v2</code> 또는 <code>ai-hook-v3</code>)이 복사되고, 훅이 그 프로그램을 가리켜요.</p>
+      <p>Codex는 설치 뒤 Settings → Hooks에서 Hamster 훅을 승인해야 해요. Claude Code, Gemini CLI, Grok은 새 세션에서 <code>/hooks</code>(Gemini는 <code>/hooks list</code>)로 확인해요. Cursor는 Hooks 설정에서 확인해요. Grok은 Claude Code 훅도 함께 실행하지만, Hamster는 Grok의 신호를 Grok 훅에서만 받아요.</p>` },
         { id: 'updates', heading: '업데이트', html: `
       <p>앱이 하루에 한두 번 GitHub 릴리스를 확인해요. 새 버전이 있으면 메뉴에 보여 주고, 내가 누를 때만 설치해요. 받은 파일은 서명을 확인한 뒤에만 설치해요.</p>` },
         { id: 'remove', heading: '지우기', html: `
@@ -77,7 +77,7 @@ export const copy = {
         <li>남은 도우미 프로그램은 <code>~/.codex/hamster</code> 같은 <code>hamster</code> 폴더에서 지울 수 있어요.</li>
       </ol>` },
         { id: 'privacy', heading: '개인정보', html: `
-      <p>Hamster는 업데이트 정보를 GitHub에서 가져오는 것 말고는 아무것도 보내지 않아요. 프롬프트와 작업 내용을 모으지 않아요. 소스가 공개되어 있어서 <a href="{{source}}">직접 확인</a>할 수 있어요.</p>` },
+      <p>Hamster는 업데이트 정보를 GitHub에서 가져오는 것 말고는 아무것도 보내지 않아요. 토큰 사용량을 보여 주려고 이 Mac에 남은 AI 도구의 대화 기록에서 토큰 숫자를 읽어요. Claude Code에서 작업을 중단했는지 알아보려고 그 세션 대화 기록의 끝부분에서 중단 표시도 확인해요. 프롬프트와 작업 내용은 저장하거나 보내지 않아요. 소스가 공개되어 있어서 <a href="{{source}}">직접 확인</a>할 수 있어요.</p>` },
         { id: 'help', heading: '문제가 생기면', html: `
       <p><a href="{{issues}}">GitHub Issues</a>에 남겨 주세요. 프롬프트, 코드, 키, 개인정보는 올리지 마세요.</p>` },
       ],
@@ -151,8 +151,8 @@ export const copy = {
         { id: 'connect', heading: '4. Connect an AI tool', html: `
       <p>From the Hamster icon in the menu bar, choose <strong>AI Connection</strong> → your tool → <strong>Install … Hooks…</strong>. Connect each tool separately. Hamster adds only its own hooks to the files below and leaves your other settings and hooks alone. It creates the file if it’s missing, and saving may change the indentation.</p>
       {{table}}
-      <p class="small">If you set CODEX_HOME, CLAUDE_CONFIG_DIR or GEMINI_CLI_HOME, Hamster uses that folder instead. Each folder also gets a <code>hamster</code> folder with a small helper program (<code>codex-hook-v2</code> for Codex, <code>ai-hook-v2</code> for the others) that the hooks point to.</p>
-      <p>For Codex, approve the Hamster hooks in Settings → Hooks after installing. For Claude Code and Gemini CLI, open a new session and check <code>/hooks</code> (<code>/hooks list</code> in Gemini). For Cursor, check the Hooks settings.</p>` },
+      <p class="small">If you set CODEX_HOME, CLAUDE_CONFIG_DIR, GEMINI_CLI_HOME or GROK_HOME, Hamster uses that folder instead. Each folder also gets a <code>hamster</code> folder with a small helper program (<code>codex-hook-v2</code>, <code>ai-hook-v2</code> or <code>ai-hook-v3</code>) that the hooks point to.</p>
+      <p>For Codex, approve the Hamster hooks in Settings → Hooks after installing. For Claude Code, Gemini CLI and Grok, open a new session and check <code>/hooks</code> (<code>/hooks list</code> in Gemini). For Cursor, check the Hooks settings. Grok also runs Claude Code hooks, but Hamster takes Grok’s signals only from the Grok hook.</p>` },
         { id: 'updates', heading: 'Updates', html: `
       <p>The app checks the GitHub release once or twice a day. If there’s a new version, it shows up in the menu, and it installs only when you click it. Downloads are checked with a signature before they’re installed.</p>` },
         { id: 'remove', heading: 'Removing Hamster', html: `
@@ -162,7 +162,7 @@ export const copy = {
         <li>You can delete the leftover helper from the <code>hamster</code> folder, such as <code>~/.codex/hamster</code>.</li>
       </ol>` },
         { id: 'privacy', heading: 'Privacy', html: `
-      <p>Hamster sends nothing except fetching the update information from GitHub. It doesn’t collect your prompts or your work. The source is public, so you can <a href="{{source}}">check for yourself</a>.</p>` },
+      <p>Hamster sends nothing except fetching the update information from GitHub. To show token usage it reads the token counts from your AI tools’ records on this Mac. To notice when you stop a Claude Code turn, it also checks the end of that session’s transcript for the interrupt marker. It never stores or sends your prompts or your work. The source is public, so you can <a href="{{source}}">check for yourself</a>.</p>` },
         { id: 'help', heading: 'Something wrong?', html: `
       <p>Open an issue on <a href="{{issues}}">GitHub Issues</a>. Please don’t post prompts, code, keys or personal information.</p>` },
       ],

@@ -5,12 +5,12 @@ const net = require('node:net');
 const os = require('node:os');
 const {createHash} = require('node:crypto');
 const {createMotionState, readMotionSettings} = require('./motion-state.cjs');
-const {rewardInterval, humanIdleLimit, sampleWork, nextReward, readProgress} = require('./progress.cjs');
+const {rewardInterval, humanIdleLimit, sampleWork, nextReward, readProgress, readToolTime, addToolTime, todayMs} = require('./progress.cjs');
 const {readLanguage, localize} = require('./localization.cjs');
 const {readPlacement, bottomPosition} = require('./placement.cjs');
 const {installHooks,removeHooks,installed,bridgeCurrent} = require('./codex-install.cjs');
 const {createConnectionStatus} = require('./connection-status.cjs');
-const {createCodexUsage} = require('./codex-usage.cjs');
+const {createUsageReader} = require('./codex-usage.cjs');
 const {codexTerminals,claudeTerminals} = require('./codex-lifecycle.cjs');
 const {readWallet,earnSeeds,canWear,ownedOutfit,catalogItems,purchase,readSavedOutfits,saveNamedOutfit,deleteNamedOutfit,
   seedProgress,firstGiftItem,canClaimFirstGift,claimFirstGift} = require('./wardrobe.cjs');
@@ -39,7 +39,10 @@ const hookProviders = [
   {id:'claude',name:'Claude Code',directory:claudeHome},
   {id:'cursor',name:'Cursor Agent',directory:path.join(os.homedir(),'.cursor')},
   {id:'gemini',name:'Gemini CLI',directory:path.join(process.env.GEMINI_CLI_HOME || os.homedir(),'.gemini')},
+  {id:'grok',name:'Grok',directory:path.resolve(process.env.GROK_HOME || path.join(os.homedir(),'.grok'))},
 ];
+// Cursor keeps no token counts on this Mac, so it shows time worked together only.
+const tokenProviders = new Set(['codex','claude','gemini','grok']);
 const hookExecutable = path.join(__dirname,'codex-hook-v2');
 const installedBundle = path.resolve(__dirname,'../../..');
 const updateExecutable = path.join(__dirname,'update-mac');
@@ -83,9 +86,10 @@ if ((canUpdate && updateInProgress(installedBundle,updateReady)) || !app.request
   const saved = loadSettings();
   let codexUsageStarts = Object.fromEntries(Object.entries(saved.codexUsageStarts ?? {}).filter(([key,time]) =>
     /^[a-f0-9]{64}$/.test(key) && Number.isSafeInteger(time) && time > 0 && time <= 8_640_000_000_000_000));
-  let usageHomeKey, codexUsageSince = null;
-  let usageReader;
-  let codexUsage = {state:'unsupported',before:null,after:null};
+  const noUsage = {state:'unsupported',before:null,after:null};
+  const usage = Object.fromEntries(hookProviders.filter(({id}) => tokenProviders.has(id))
+    .map(({id}) => [id,{key:undefined,since:null,reader:undefined,result:noUsage}]));
+  const toolTime = readToolTime(saved.toolTime,hookProviders.map(({id}) => id));
   const progress = readProgress(saved.progress);
   let wallet = readWallet(saved.wallet,wardrobe.items);
   let outfit = ownedOutfit(saved.outfit,wardrobe.items,wallet);
@@ -116,7 +120,7 @@ if ((canUpdate && updateInProgress(installedBundle,updateReady)) || !app.request
     try {
       fs.mkdirSync(settingsDir,{recursive:true,mode:0o700});
       const temporary = settingsPath + '.tmp';
-      fs.writeFileSync(temporary,JSON.stringify({progress,outfit,savedOutfits,wallet,seedCollection,motionSettings,language,placement,codexUsageStarts,highestManifest,...changes})+'\n',{mode:0o600});
+      fs.writeFileSync(temporary,JSON.stringify({progress,outfit,savedOutfits,wallet,seedCollection,motionSettings,language,placement,codexUsageStarts,highestManifest,toolTime,...changes})+'\n',{mode:0o600});
       fs.renameSync(temporary,settingsPath);
       lastSave = performance.now();
       return true;
@@ -220,10 +224,8 @@ if ((canUpdate && updateInProgress(installedBundle,updateReady)) || !app.request
     try {
       installHooks(path.resolve(directory),hookExecutable,id);
       connections.reset(id);
-      if (id === 'codex') {
-        refreshCodexUsage();
-        await openCodexSettings();
-      }
+      refreshUsage(id);
+      if (id === 'codex') await openCodexSettings();
     } catch (error) {
       dialog.showErrorBox(strings.hookError,error.message);
     }
@@ -233,69 +235,97 @@ if ((canUpdate && updateInProgress(installedBundle,updateReady)) || !app.request
     try {
       removeHooks(path.resolve(directory),id);
       connections.reset(id);
-      if (id === 'codex') stopCodexUsage();
+      stopUsage(id);
     } catch (error) {
       dialog.showErrorBox(text().hookError,error.message);
     }
   }
 
-  function stopCodexUsage() {
-    usageReader?.dispose();
-    usageReader = undefined;
-    codexUsage = {state:'unsupported',before:null,after:null};
+  function stopUsage(id) {
+    if (!Object.hasOwn(usage,id)) return;
+    const entry = usage[id];
+    entry.reader?.dispose();
+    Object.assign(entry,{reader:undefined,key:undefined,since:null,result:noUsage});
   }
 
-  function refreshCodexUsage() {
+  // Codex keeps its original key so existing tracking starts survive.
+  const usageKey = (id, home) => createHash('sha256').update(id === 'codex' ? home : id+'\0'+home).digest('hex');
+
+  function refreshUsage(id) {
+    if (!Object.hasOwn(usage,id)) return;
+    const entry = usage[id];
+    const {directory} = hookProviders.find(provider => provider.id === id);
     let home;
     try {
-      if (!installed(codexHome,'codex')) {
-        stopCodexUsage();
+      if (!installed(directory,id)) {
+        stopUsage(id);
         return;
       }
-      home = fs.realpathSync(codexHome);
+      home = fs.realpathSync(directory);
     } catch {
-      stopCodexUsage();
+      stopUsage(id);
       return;
     }
-    const key = createHash('sha256').update(home).digest('hex');
-    if (usageHomeKey !== key) {
-      stopCodexUsage();
-      usageHomeKey = key;
-      codexUsageSince = codexUsageStarts[key] ?? null;
+    const key = usageKey(id,home);
+    if (entry.key !== key) {
+      stopUsage(id);
+      entry.key = key;
+      entry.since = codexUsageStarts[key] ?? null;
     }
-    if (codexUsageSince === null) {
+    if (entry.since === null) {
       const startedAt = Date.now();
       const nextStarts = {...codexUsageStarts,[key]:startedAt};
       if (!saveSettings({codexUsageStarts:nextStarts})) return;
       codexUsageStarts = nextStarts;
-      codexUsageSince = startedAt;
+      entry.since = startedAt;
     }
-    if (!usageReader) {
-      codexUsage = {state:'loading',before:null,after:null};
-      usageReader = createCodexUsage({home,cachePath:path.join(settingsDir,`codex-usage-${key}.json`),
-        onChange:result => {codexUsage = result;}});
+    if (!entry.reader) {
+      entry.result = {...noUsage,state:'loading'};
+      const cache = id === 'codex' ? `codex-usage-${key}.json` : `${id}-usage-${key}.json`;
+      entry.reader = createUsageReader({provider:id,home,cachePath:path.join(settingsDir,cache),
+        onChange:result => {entry.result = result;}});
     }
-    usageReader.refresh(codexUsageSince);
+    const midnight = new Date();
+    midnight.setHours(0,0,0,0);
+    entry.reader.refresh(entry.since,midnight.getTime());
+  }
+
+  const refreshAllUsage = () => Object.keys(usage).forEach(refreshUsage);
+  const usageTimers = new Map();
+
+  // A finished turn has just written its usage; read it shortly instead of waiting for the next sweep.
+  function scheduleUsage(id) {
+    if (!Object.hasOwn(usage,id) || usageTimers.has(id)) return;
+    usageTimers.set(id,setTimeout(() => {
+      usageTimers.delete(id);
+      refreshUsage(id);
+    },3000));
+  }
+
+  function toolTimeRow(id, strings) {
+    const entry = toolTime[id];
+    const today = todayMs(entry,dayFormat.format(new Date()));
+    return {label:strings.toolTime(strings.duration(today),strings.duration(entry.totalMs)),enabled:false};
   }
 
   function usageMenu(provider, configured, strings) {
-    const supported = provider === 'codex' && configured;
-    const describe = amount => {
-      if (!supported || !Number.isSafeInteger(amount) || amount < 0) {
-        return supported && codexUsage.state === 'loading' ? strings.usageLoading : strings.usageUnsupported;
-      }
-      return strings.usageTokens(new Intl.NumberFormat(strings.locale).format(amount));
-    };
-    const rows = [
-      {label:strings.usageBefore(describe(codexUsage.before)),enabled:false},
-      {label:strings.usageAfter(describe(codexUsage.after)),enabled:false},
-    ];
-    if (supported && codexUsageSince !== null) {
-      rows.push({label:strings.usageSince(new Date(codexUsageSince).toLocaleString(strings.locale)),enabled:false});
-      rows.push({label:strings.usageLocal,enabled:false});
-      if (codexUsage.partial) rows.push({label:strings.usagePartial,enabled:false});
+    const entry = usage[provider];
+    const {result} = entry;
+    const compact = amount => new Intl.NumberFormat(strings.locale,{notation:'compact',maximumFractionDigits:1}).format(amount ?? 0);
+    if (!configured || result.state !== 'ready') {
+      const reason = configured && result.state === 'loading' ? strings.usageLoading : strings.usageUnsupported;
+      return {label:strings.tokenUsage+' · '+reason,enabled:false};
     }
-    return {label:strings.tokenUsage,submenu:rows};
+    const exact = amount => strings.usageTokens(new Intl.NumberFormat(strings.locale).format(amount));
+    const rows = [
+      {label:strings.usageAfter(exact(result.after ?? 0),compact(result.afterOutput)),enabled:false},
+      {label:strings.usageBefore(exact(result.before ?? 0)),enabled:false},
+      {label:strings.usageSince(new Date(entry.since).toLocaleString(strings.locale)),enabled:false},
+      {label:strings.usageLocal(hookProviders.find(({id}) => id === provider).name),enabled:false},
+    ];
+    if (provider === 'gemini') rows.push({label:strings.usageExperimental,enabled:false});
+    if (result.partial) rows.push({label:strings.usagePartial,enabled:false});
+    return {label:strings.usageToday(compact(result.today),compact(result.todayOutput)),submenu:rows};
   }
 
   function providerMenu(provider, strings) {
@@ -324,7 +354,8 @@ if ((canUpdate && updateInProgress(installedBundle,updateReady)) || !app.request
       click:() => dialog.showMessageBox({type:'info',message:strings.connectionState.waiting,
         detail:strings.hookSteps[provider.id]+'\n\n'+strings.sendTestRequest})});
     if (provider.id === 'codex') submenu.push({label:strings.codexSettings,click:openCodexSettings});
-    submenu.push(usageMenu(provider.id,configured,strings));
+    submenu.push(toolTimeRow(provider.id,strings));
+    if (Object.hasOwn(usage,provider.id)) submenu.push(usageMenu(provider.id,configured,strings));
     return {label:provider.name,submenu};
   }
 
@@ -631,6 +662,7 @@ if ((canUpdate && updateInProgress(installedBundle,updateReady)) || !app.request
     const previousReward = nextReward(progress);
     const worked = sampleWork({elapsed,idle:human ? 0 : Infinity,ai:state.working,suspended:blocked});
     progress.workMs += worked;
+    if (!blocked) addToolTime(toolTime,state.workingProviders,elapsed,dayFormat.format(new Date()));
     const earned = seedCollection && worked > 0 && earnSeeds(wallet,worked,dayFormat.format(new Date()));
     if (earned || nextReward(progress) !== previousReward || (now - lastSave >= 15000 && !blocked && (human || state.working))) {
       saveSettings();
@@ -688,11 +720,14 @@ if ((canUpdate && updateInProgress(installedBundle,updateReady)) || !app.request
           if (!message || typeof message.id !== 'string' || !/^[a-f0-9]{64}$/.test(message.id)) return;
           if (!['submitted','finished','interrupted','sessionEnded'].includes(message.type)) return;
           const scope = typeof message.scope === 'string' && /^[a-f0-9]{64}$/.test(message.scope) ? message.scope : undefined;
-          connections.observe(message.provider);
-          if (state.event(message.type,message.id,{scope,provider:message.provider,
+          // Any local process can write here, so only known tool names reach the state and tool clocks.
+          const provider = hookProviders.some(({id}) => id === message.provider) ? message.provider : undefined;
+          connections.observe(provider);
+          if (state.event(message.type,message.id,{scope,provider,
             reusable:message.reusable === true,supersede:message.supersede === true})) {
             record('hook',message.type);
           }
+          if (provider && message.type !== 'submitted') scheduleUsage(provider);
           status();
         } catch (error) {
           if (!(error instanceof SyntaxError)) throw error;
@@ -790,8 +825,8 @@ if ((canUpdate && updateInProgress(installedBundle,updateReady)) || !app.request
     checkRemoteUpdate();
     if (canUpdate) updateTicker = setInterval(refreshUpdates,updateScanInterval);
     remoteTicker = setInterval(checkRemoteUpdate,remoteCheckInterval);
-    refreshCodexUsage();
-    usageTicker = setInterval(refreshCodexUsage,30_000);
+    refreshAllUsage();
+    usageTicker = setInterval(refreshAllUsage,60_000);
     for (const event of ['click','right-click']) tray.on(event,async () => {
       await refreshUpdates();
       if (!tray.isDestroyed()) tray.popUpContextMenu(menu());
@@ -805,7 +840,7 @@ if ((canUpdate && updateInProgress(installedBundle,updateReady)) || !app.request
       suspended = false;
       lastSample = performance.now();
       refreshUpdates();
-      refreshCodexUsage();
+      refreshAllUsage();
       syncInteraction();
     });
     powerMonitor.on('lock-screen',() => {screenLocked = true; syncInteraction();});
@@ -838,7 +873,8 @@ if ((canUpdate && updateInProgress(installedBundle,updateReady)) || !app.request
     clearInterval(remoteTicker);
     clearInterval(usageTicker);
     clearInterval(lifecycleTicker);
-    stopCodexUsage();
+    for (const timer of usageTimers.values()) clearTimeout(timer);
+    for (const id of Object.keys(usage)) stopUsage(id);
     server?.close();
     saveSettings();
     listening = false;

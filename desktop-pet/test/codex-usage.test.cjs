@@ -3,12 +3,16 @@ const fs = require('node:fs/promises');
 const os = require('node:os');
 const path = require('node:path');
 const {test} = require('node:test');
-const {createCodexUsage,scanCodexUsage} = require('../codex-usage.cjs');
+const {createUsageReader,scanCodexUsage} = require('../codex-usage.cjs');
+
+// The original split; output and today are checked separately below.
+const split = ({state,before,after,partial}) => ({state,before,after,...(partial ? {partial} : {})});
 
 const cutoff = Date.parse('2026-11-08T12:00:00Z');
-function token(seconds,total,last) {
+function token(seconds,total,last,output,lastOutput) {
   return JSON.stringify({timestamp:new Date(cutoff+seconds*1000).toISOString(),type:'event_msg',payload:{
-    type:'token_count',info:{total_token_usage:{total_tokens:total},last_token_usage:{total_tokens:last}},
+    type:'token_count',info:{total_token_usage:{total_tokens:total,output_tokens:output},
+      last_token_usage:{total_tokens:last,output_tokens:lastOutput}},
   }})+'\n';
 }
 
@@ -19,7 +23,8 @@ async function fixture(t) {
   const archive = path.join(home,'archived_sessions');
   const cachePath = path.join(home,'data','usage.json');
   await Promise.all([fs.mkdir(sessions,{recursive:true}),fs.mkdir(archive)]);
-  return {home,sessions,archive,cachePath,scan:since => scanCodexUsage({home,cachePath,since:since ?? cutoff})};
+  return {home,sessions,archive,cachePath,scan:since => scanCodexUsage({home,cachePath,since:since ?? cutoff}).then(split),
+    full:(since,dayStart) => scanCodexUsage({home,cachePath,since,dayStart})};
 }
 
 test('counts incremental usage once across archived copies and forks at the exact cutoff', async t => {
@@ -101,7 +106,7 @@ test('refresh runs in a worker and only publishes the newest requested split', a
   const {home,sessions,cachePath} = await fixture(t);
   await fs.writeFile(path.join(sessions,'rollout-worker.jsonl'),token(-1,10,10)+token(0,30,20));
   const states = [];
-  const usage = createCodexUsage({home,cachePath,onChange:state => {
+  const usage = createUsageReader({home,cachePath,onChange:state => {
     states.push(state);
     if (state.state !== 'loading') finish(state);
   }});
@@ -111,6 +116,14 @@ test('refresh runs in a worker and only publishes the newest requested split', a
   usage.refresh(cutoff);
   usage.refresh(cutoff);
   usage.refresh(cutoff+1000);
-  assert.deepEqual(await result,{state:'ready',before:30,after:null});
+  assert.deepEqual(split(await result),{state:'ready',before:30,after:null});
   assert.deepEqual(states.map(state => state.state),['loading','ready']);
+});
+
+test('splits output and today from the same deduplicated Codex events', async t => {
+  const {sessions,full} = await fixture(t);
+  await fs.writeFile(path.join(sessions,'rollout-output.jsonl'),
+    token(-60,100,100,10,10)+token(0,160,60,25,15)+token(60,200,40,30,5));
+  assert.deepEqual(await full(cutoff,cutoff+30_000),
+    {state:'ready',before:100,after:100,today:40,todayOutput:5,afterOutput:20});
 });

@@ -209,6 +209,7 @@ function createMotionState(publish, {
   return {event, tick, configure, interact, completeReward, expire, dispose, get clip() {return clip;},
           get canPat() {return canPat();},
           get activeCount() {return active.size;}, get working() {return active.size > 0;},
+          get workingProviders() {return new Set([...active.values()].map(turn => turn.provider).filter(Boolean));},
           activeTurns(provider) {
             return [...active].filter(([,turn]) => turn.scope && turn.provider === provider)
               .map(([id,{scope,started}]) => ({id,scope,started}));

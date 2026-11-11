@@ -47,10 +47,10 @@ test('provider installers preserve settings and write their native hook schemas'
   t.after(() => fs.rmSync(root,{recursive:true,force:true}));
   const source = path.join(root,'fixture');
   fs.writeFileSync(source,'mock executable');
-  for (const [provider,file,event,timeout] of [
-    ['claude','settings.json','UserPromptSubmit',1],
-    ['cursor','hooks.json','beforeSubmitPrompt',1],
-    ['gemini','settings.json','BeforeAgent',1000],
+  for (const [provider,file,event,timeout,version] of [
+    ['claude','settings.json','UserPromptSubmit',1,3],
+    ['cursor','hooks.json','beforeSubmitPrompt',1,3],
+    ['gemini','settings.json','BeforeAgent',1000,2],
   ]) {
     const directory = path.join(root,provider);
     fs.mkdirSync(directory);
@@ -61,16 +61,16 @@ test('provider installers preserve settings and write their native hook schemas'
     const document = JSON.parse(fs.readFileSync(config,'utf8'));
     const entry = document.hooks[event][0];
     const hook = provider === 'cursor' ? entry : entry.hooks[0];
-    assert.ok(hook.command.endsWith("/ai-hook-v2' "+provider));
+    assert.ok(hook.command.endsWith(`/ai-hook-v${version}' ${provider}`));
     assert.equal(hook.timeout,timeout);
     removeHooks(directory,provider);
     assert.deepEqual(JSON.parse(fs.readFileSync(config,'utf8')),original);
   }
 });
 
-for (const [provider, file, events] of [
-  ['codex','hooks.json',['UserPromptSubmit','Stop','Interrupt']],
-  ['cursor','hooks.json',['beforeSubmitPrompt','stop','sessionEnd']],
+for (const [provider, file, events, version] of [
+  ['codex','hooks.json',['UserPromptSubmit','Stop','Interrupt'],2],
+  ['cursor','hooks.json',['beforeSubmitPrompt','stop','sessionEnd'],3],
 ]) {
   test(`${provider} migration preserves the trusted executable and other hooks`, t => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(),'hamster-migrate-'));
@@ -80,7 +80,7 @@ for (const [provider, file, events] of [
     const flat = provider === 'cursor';
     const base = path.join(directory,'hamster',flat ? 'ai-hook' : 'codex-hook');
     const legacy = base+'-v1';
-    const current = base+'-v2';
+    const current = base+'-v'+version;
     const argument = flat ? ' cursor' : '';
     const command = `'${legacy}'${argument}`;
     const personal = {type:'command',command:'echo personal'};
@@ -124,3 +124,41 @@ for (const [provider, file, events] of [
       {...settings,hooks:{[events[0]]:untouched,unmanaged:unrelated}});
   });
 }
+
+test('Grok gets its own hook file with the idle backstop, and removal keeps the file valid', t => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(),'hamster-grok-'));
+  t.after(() => fs.rmSync(directory,{recursive:true,force:true}));
+  const source = path.join(directory,'fixture');
+  fs.writeFileSync(source,'mock executable');
+  installHooks(directory,source,'grok');
+  const config = path.join(directory,'hooks','hamster.json');
+  const {hooks} = JSON.parse(fs.readFileSync(config,'utf8'));
+  assert.deepEqual(Object.keys(hooks),['UserPromptSubmit','Stop','StopFailure','StopCancelled','SessionEnd','Notification']);
+  assert.equal(hooks.Notification[0].matcher,'idle_prompt');
+  assert.equal(hooks.Stop[0].matcher,undefined);
+  assert.ok(hooks.Stop[0].hooks[0].command.endsWith("/hamster/ai-hook-v3' grok"));
+  assert.equal(installed(directory,'grok'),true);
+  assert.equal(bridgeCurrent(directory,'grok'),true);
+  removeHooks(directory,'grok');
+  assert.deepEqual(JSON.parse(fs.readFileSync(config,'utf8')),{hooks:{}});
+  assert.equal(installed(directory,'grok'),false);
+});
+
+test('a Claude v2 hook still counts as installed but asks for the v3 update', t => {
+  const directory = fs.mkdtempSync(path.join(os.tmpdir(),'hamster-claude-v2-'));
+  t.after(() => fs.rmSync(directory,{recursive:true,force:true}));
+  const helper = path.join(directory,'hamster','ai-hook-v2');
+  fs.mkdirSync(path.dirname(helper),{mode:0o700});
+  fs.writeFileSync(helper,'trusted v2',{mode:0o700});
+  const hook = {type:'command',command:`'${helper}' claude`};
+  const events = ['UserPromptSubmit','Stop','StopFailure','SessionEnd'];
+  fs.writeFileSync(path.join(directory,'settings.json'),JSON.stringify({hooks:Object.fromEntries(events.map(event => [event,[{hooks:[hook]}]]))}));
+  assert.equal(installed(directory,'claude'),true);
+  assert.equal(bridgeCurrent(directory,'claude'),false);
+  const source = path.join(directory,'fixture');
+  fs.writeFileSync(source,'v3');
+  installHooks(directory,source,'claude');
+  const {hooks} = JSON.parse(fs.readFileSync(path.join(directory,'settings.json'),'utf8'));
+  for (const event of events) assert.deepEqual(hooks[event].map(group => group.hooks[0].command),[`'${path.join(directory,'hamster','ai-hook-v3')}' claude`]);
+  assert.equal(bridgeCurrent(directory,'claude'),true);
+});

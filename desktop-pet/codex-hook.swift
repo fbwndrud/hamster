@@ -7,7 +7,9 @@ let events: [String: [String: String]] = [
     "codex": ["UserPromptSubmit": "submitted", "Stop": "finished", "Interrupt": "interrupted"],
     "claude": ["UserPromptSubmit": "submitted", "Stop": "finished", "StopFailure": "interrupted", "SessionEnd": "sessionEnded"],
     "cursor": ["beforeSubmitPrompt": "submitted", "stop": "finished", "sessionEnd": "sessionEnded"],
-    "gemini": ["BeforeAgent": "submitted", "AfterAgent": "finished", "SessionEnd": "sessionEnded"]
+    "gemini": ["BeforeAgent": "submitted", "AfterAgent": "finished", "SessionEnd": "sessionEnded"],
+    "grok": ["UserPromptSubmit": "submitted", "Stop": "finished", "StopFailure": "interrupted",
+             "StopCancelled": "interrupted", "SessionEnd": "sessionEnded", "Notification": "sessionEnded"]
 ]
 
 func hash(_ parts: [String]) -> String? {
@@ -17,8 +19,17 @@ func hash(_ parts: [String]) -> String? {
 
 func forward(_ event: [String: Any], _ name: String) {
     guard var signal = events[provider]?[name] else { return }
-    let sessionField = provider == "cursor" ? "conversation_id" : "session_id"
-    let turnField = ["codex": "turn_id", "claude": "prompt_id", "cursor": "generation_id", "gemini": "prompt_id"]
+    // Grok also runs the Claude and Cursor hook files; its own hook file reports for it.
+    if (provider == "claude" || provider == "cursor") && event["hookEventName"] != nil { return }
+    if provider == "grok" {
+        if event["subagentType"] != nil { return }
+        // A second Stop fires at session end; SessionEnd reports that.
+        if name == "Stop" && (event["reason"] as? String) != "end_turn" { return }
+        // The idle ping settles turns that ended without a report, such as a rewind.
+        if name == "Notification" && (event["notificationType"] ?? event["notification_type"]) as? String != "idle_prompt" { return }
+    }
+    let sessionField = provider == "cursor" ? "conversation_id" : provider == "grok" ? "sessionId" : "session_id"
+    let turnField = ["codex": "turn_id", "claude": "prompt_id", "cursor": "generation_id", "gemini": "prompt_id", "grok": "promptId"]
     guard let field = turnField[provider],
           let session = (event[sessionField] ?? event["session_id"]) as? String, !session.isEmpty else { return }
     let turn = (event[field] as? String).flatMap { $0.isEmpty ? nil : $0 }
@@ -36,7 +47,7 @@ func forward(_ event: [String: Any], _ name: String) {
         "scope": scope
     ]
     if turn == nil { message["reusable"] = true }
-    if signal == "submitted" && (provider == "claude" || provider == "gemini") {
+    if signal == "submitted" && (provider == "claude" || provider == "gemini" || provider == "grok") {
         message["supersede"] = true
     }
     guard var payload = try? JSONSerialization.data(withJSONObject: message) else { return }

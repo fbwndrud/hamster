@@ -4,14 +4,14 @@ const path = require('node:path');
 const {createHash,randomUUID} = require('node:crypto');
 const {isMainThread,parentPort,workerData,Worker} = require('node:worker_threads');
 
-const cacheVersion = 3;
+const cacheVersion = 4;
 const tokenMarker = Buffer.from('"token_count"');
 const eventMarker = Buffer.from('"event_msg"');
 const isoTimestamp = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
-const unavailable = {state:'unsupported',before:null,after:null};
+const unavailable = {state:'unsupported',before:null,after:null,today:null,todayOutput:null,afterOutput:null};
 const isCount = value => Number.isSafeInteger(value) && value >= 0;
 
-async function* rollouts(directory, scan) {
+async function* rollouts(directory, scan, pattern = /^rollout-.+\.jsonl$/) {
   let entries;
   try {
     if (!(await fs.lstat(directory)).isDirectory()) return;
@@ -22,8 +22,8 @@ async function* rollouts(directory, scan) {
   }
   for (const entry of entries) {
     const filename = path.join(directory,entry.name);
-    if (entry.isDirectory()) yield* rollouts(filename,scan);
-    else if (entry.isFile() && /^rollout-.+\.jsonl$/.test(entry.name)) yield filename;
+    if (entry.isDirectory()) yield* rollouts(filename,scan,pattern);
+    else if (entry.isFile() && pattern.test(entry.name)) yield filename;
   }
 }
 
@@ -60,10 +60,14 @@ function countLine(line, entry) {
   const info = event.payload.info;
   const total = info?.total_token_usage?.total_tokens;
   const last = info?.last_token_usage?.total_tokens;
+  const output = info?.total_token_usage?.output_tokens;
+  const lastOutput = info?.last_token_usage?.output_tokens;
   const timestamp = event.timestamp;
   const time = typeof timestamp === 'string' && isoTimestamp.test(timestamp) ? Date.parse(timestamp) : NaN;
   const previousTotal = entry.total;
+  const previousOutput = entry.output ?? null;
   entry.total = isCount(total) ? total : null;
+  entry.output = isCount(output) ? output : null;
   if (entry.total === null || !Number.isFinite(time)) {
     entry.partial = true;
     return;
@@ -74,11 +78,14 @@ function countLine(line, entry) {
   }
   const delta = previousTotal === null ? last : total-previousTotal;
   if (delta < 0) entry.partial = true;
+  const outputDelta = entry.output === null ? 0 : previousOutput === null ?
+    (isCount(lastOutput) ? lastOutput : 0) : entry.output-previousOutput;
   // Repeats and resets cannot add usage when a fork copies them as its first snapshot.
-  entry.events.push([time,total,isCount(last) ? last : null,Math.max(0,delta),Number(previousTotal !== null),timestamp]);
+  entry.events.push([time,total,isCount(last) ? last : null,Math.max(0,delta),Number(previousTotal !== null),timestamp,
+    Math.max(0,Math.min(outputDelta,Math.max(0,delta)))]);
 }
 
-async function scanRollout(filename, stat, previous) {
+async function scanRollout(filename, stat, previous, count = countLine) {
   const current = metadata(stat);
   if (unchanged(previous,current)) return previous;
   const file = await fs.open(filename,constants.O_RDONLY | constants.O_NOFOLLOW);
@@ -90,7 +97,7 @@ async function scanRollout(filename, stat, previous) {
     const append = previous && current.size > previous.size && current.createdAt === previous.createdAt &&
       await fingerprint(file,previous.offset) === previous.fingerprint;
     const entry = append ? {...previous,...current,events:[...previous.events]} :
-      {...current,offset:0,total:null,events:[],partial:false};
+      {...current,offset:0,total:null,output:null,events:[],partial:false};
 
     if (entry.offset < current.size) {
       let fragments = [];
@@ -100,7 +107,7 @@ async function scanRollout(filename, stat, previous) {
         while ((end = chunk.indexOf(10,start)) !== -1) {
           const tail = chunk.subarray(start,end);
           const line = fragments.length ? Buffer.concat([...fragments,tail]) : tail;
-          countLine(line,entry);
+          count(line,entry);
           entry.offset += line.length+1;
           fragments = [];
           start = end+1;
@@ -148,7 +155,30 @@ async function writeCache(cachePath, files) {
   }
 }
 
-async function scanCodexUsage({home,cachePath,since}) {
+// Splits deduplicated [time, total, output] records around the tracking start and today's local midnight.
+function summarize(records, since, dayStart, partial) {
+  let before = null;
+  let after = null;
+  let afterOutput = null;
+  let today = null;
+  let todayOutput = null;
+  for (const [time,total,output] of records) {
+    if (!total) continue;
+    if (time < since) before = (before ?? 0)+total;
+    else {
+      after = (after ?? 0)+total;
+      afterOutput = (afterOutput ?? 0)+output;
+    }
+    if (time >= dayStart) {
+      today = (today ?? 0)+total;
+      todayOutput = (todayOutput ?? 0)+output;
+    }
+  }
+  const state = before === null && after === null ? 'unsupported' : 'ready';
+  return {state,before,after,today,todayOutput,afterOutput,...(partial ? {partial:true} : {})};
+}
+
+async function scanCodexUsage({home,cachePath,since,dayStart = Infinity}) {
   if (!Number.isFinite(since)) return unavailable;
   const previous = await readCache(cachePath);
   const files = Object.create(null);
@@ -183,43 +213,42 @@ async function scanCodexUsage({home,cachePath,since}) {
     }
   }
   if (updated || Object.keys(files).length !== Object.keys(previous).length) await writeCache(cachePath,files);
-  let before = null;
-  let after = null;
-  for (const [time,,,delta] of unique.values()) {
-    if (delta === 0) continue;
-    if (time < since) before = (before ?? 0)+delta;
-    else after = (after ?? 0)+delta;
-  }
-  const state = before === null && after === null ? 'unsupported' : 'ready';
-  return {state,before,after,...(scan.partial ? {partial:true} : {})};
+  const records = [...unique.values()].map(([time,,,delta,,,output]) => [time,delta,isCount(output) ? output : 0]);
+  return summarize(records,since,dayStart,scan.partial);
 }
 
-function createCodexUsage({home,cachePath,onChange}) {
+const scanners = {codex:scanCodexUsage};
+const scannerFor = provider => scanners[provider] ?? require('./tool-usage.cjs').scanners[provider];
+
+// Each provider scans its local records in its own worker; a request is {since, dayStart}.
+function createUsageReader({provider = 'codex',home,cachePath,onChange}) {
   let worker, active, queued;
   let started = false;
   let disposed = false;
 
-  function refresh(since) {
+  function refresh(since, dayStart = Infinity) {
     if (disposed || !Number.isFinite(since)) return;
+    const request = {since,dayStart};
+    // A request during a scan runs once more afterwards, since the records may have changed meanwhile.
     if (active !== undefined) {
-      queued = since === active ? undefined : since;
+      queued = request;
       return;
     }
     if (!started) {
       started = true;
-      onChange({state:'loading',before:null,after:null});
+      onChange({...unavailable,state:'loading'});
     }
     if (!worker) {
       try {
-        const nextWorker = new Worker(__filename,{workerData:{home,cachePath}});
+        const nextWorker = new Worker(__filename,{workerData:{provider,home,cachePath}});
         worker = nextWorker;
         worker.on('message',result => {
           if (worker !== nextWorker) return;
           active = undefined;
           if (queued !== undefined) {
-            const since = queued;
+            const next = queued;
             queued = undefined;
-            refresh(since);
+            refresh(next.since,next.dayStart);
           } else onChange(result);
         });
         const failed = () => {
@@ -234,8 +263,8 @@ function createCodexUsage({home,cachePath,onChange}) {
         return;
       }
     }
-    active = since;
-    worker.postMessage(since);
+    active = request;
+    worker.postMessage(request);
   }
 
   return {refresh,dispose() {
@@ -247,10 +276,13 @@ function createCodexUsage({home,cachePath,onChange}) {
 }
 
 if (!isMainThread) {
-  parentPort.on('message',async since => {
-    const result = await scanCodexUsage({...workerData,since}).catch(() => unavailable);
+  const {provider,...options} = workerData;
+  parentPort.on('message',async ({since,dayStart}) => {
+    const result = await Promise.resolve().then(() => scannerFor(provider)({...options,since,dayStart}))
+      .catch(() => unavailable);
     parentPort.postMessage(result);
   });
 }
 
-module.exports = {createCodexUsage,scanCodexUsage};
+module.exports = {createUsageReader,scanCodexUsage,summarize,unavailable,isCount,isoTimestamp,
+  rollouts,scanRollout,metadata,unchanged,readCache,writeCache,validEntry};

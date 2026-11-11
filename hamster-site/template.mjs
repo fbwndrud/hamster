@@ -59,6 +59,7 @@ export const hookTable = [
   ['Claude Code', '~/.claude/settings.json', ['UserPromptSubmit', 'Stop', 'StopFailure', 'SessionEnd']],
   ['Cursor Agent', '~/.cursor/hooks.json', ['beforeSubmitPrompt', 'stop', 'sessionEnd']],
   ['Gemini CLI', '~/.gemini/settings.json', ['BeforeAgent', 'AfterAgent', 'SessionEnd']],
+  ['Grok', '~/.grok/hooks/hamster.json', ['UserPromptSubmit', 'Stop', 'StopFailure', 'StopCancelled', 'SessionEnd', 'Notification']],
 ];
 
 const download = icon('<path d="M12 4v11m-5-5 5 5 5-5M5 20h14"/>');

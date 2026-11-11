@@ -11,6 +11,7 @@ const hooks = [
   ['~/.claude/settings.json', ['UserPromptSubmit', 'Stop', 'StopFailure', 'SessionEnd']],
   ['~/.cursor/hooks.json', ['beforeSubmitPrompt', 'stop', 'sessionEnd']],
   ['~/.gemini/settings.json', ['BeforeAgent', 'AfterAgent', 'SessionEnd']],
+  ['~/.grok/hooks/hamster.json', ['UserPromptSubmit', 'Stop', 'StopFailure', 'StopCancelled', 'SessionEnd', 'Notification']],
 ];
 
 async function alternates(page) {

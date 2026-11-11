@@ -28,7 +28,7 @@ contents="$bundle/Contents"
 resources="$contents/Resources"
 app="$resources/app"
 mkdir -p "$app"
-cp package.json main.cjs motion-state.cjs progress.cjs localization.cjs placement.cjs codex-install.cjs codex-usage.cjs codex-lifecycle.cjs menu-template.cjs connection-status.cjs updater.cjs distribution.cjs update-manifest.cjs remote-update.cjs diagnostics.cjs preload.cjs overlay.{html,css,js} interaction.{html,js} wardrobe.cjs wardrobe.css wardrobe-ui.js "$app"
+cp package.json main.cjs motion-state.cjs progress.cjs localization.cjs placement.cjs codex-install.cjs codex-usage.cjs tool-usage.cjs codex-lifecycle.cjs menu-template.cjs connection-status.cjs updater.cjs distribution.cjs update-manifest.cjs remote-update.cjs diagnostics.cjs preload.cjs overlay.{html,css,js} interaction.{html,js} wardrobe.cjs wardrobe.css wardrobe-ui.js "$app"
 ditto assets "$app/assets"
 rm -f "$resources/default_app.asar"
 

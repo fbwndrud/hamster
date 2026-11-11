@@ -229,3 +229,16 @@ test('only the last completed task can offer a high five, with a cooldown', () =
   finishClip();
   assert.deepEqual(clips,['request','work','reply','offer','highfive','breathe','request','reply','breathe']);
 });
+
+test('working providers name each tool with an open turn once', () => {
+  const {state} = setup();
+  state.event('submitted','a',{scope:'s1',provider:'claude'});
+  state.event('submitted','b',{scope:'s2',provider:'claude'});
+  state.event('submitted','c',{scope:'s3',provider:'grok'});
+  assert.deepEqual([...state.workingProviders].sort(),['claude','grok']);
+  state.event('finished','c');
+  state.event('sessionEnded','s1');
+  assert.deepEqual([...state.workingProviders],['claude']);
+  state.event('finished','b');
+  assert.equal(state.workingProviders.size,0);
+});

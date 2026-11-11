@@ -1,14 +1,16 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
+// Grok also runs the Claude and Cursor hook files, so their helpers moved to v3, which skips Grok's calls.
 const providers = {
-  codex:{file:'hooks.json',events:['UserPromptSubmit','Stop','Interrupt'],timeout:1},
-  claude:{file:'settings.json',events:['UserPromptSubmit','Stop','StopFailure','SessionEnd'],timeout:1},
-  cursor:{file:'hooks.json',events:['beforeSubmitPrompt','stop','sessionEnd'],timeout:1,flat:true},
-  gemini:{file:'settings.json',events:['BeforeAgent','AfterAgent','SessionEnd'],timeout:1000},
+  codex:{file:'hooks.json',events:['UserPromptSubmit','Stop','Interrupt'],timeout:1,version:2},
+  claude:{file:'settings.json',events:['UserPromptSubmit','Stop','StopFailure','SessionEnd'],timeout:1,version:3},
+  cursor:{file:'hooks.json',events:['beforeSubmitPrompt','stop','sessionEnd'],timeout:1,flat:true,version:3},
+  gemini:{file:'settings.json',events:['BeforeAgent','AfterAgent','SessionEnd'],timeout:1000,version:2},
+  grok:{file:path.join('hooks','hamster.json'),events:['UserPromptSubmit','Stop','StopFailure','StopCancelled','SessionEnd','Notification'],
+    timeout:2,version:3,matchers:{Notification:'idle_prompt'}},
 };
-const previousBridgeVersion = 1;
-const currentBridgeVersion = 2;
+const versions = provider => Array.from({length:providers[provider].version},(_,index) => index+1);
 const bridge = (directory,provider,version) => path.join(directory,'hamster',`${provider === 'codex' ? 'codex' : 'ai'}-hook-v${version}`);
 const shellQuote = value => "'" + value.replaceAll("'","'\\''") + "'";
 const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
@@ -74,20 +76,21 @@ function hasInstalledCommands(directory, provider, versions) {
 }
 
 function installed(directory, provider = 'codex') {
-  return hasInstalledCommands(directory,provider,[previousBridgeVersion,currentBridgeVersion]);
+  return hasInstalledCommands(directory,provider,versions(provider));
 }
 
 function bridgeCurrent(directory, provider = 'codex') {
-  return hasInstalledCommands(directory,provider,[currentBridgeVersion]);
+  return hasInstalledCommands(directory,provider,[providers[provider].version]);
 }
 
 function installHooks(directory, source, provider = 'codex') {
   const profile = providers[provider];
   const config = readConfig(directory,profile);
   const {hooks} = config.document;
-  const destination = bridge(directory,provider,currentBridgeVersion);
-  const command = hookCommand(directory,provider,currentBridgeVersion);
+  const destination = bridge(directory,provider,profile.version);
+  const command = hookCommand(directory,provider,profile.version);
   fs.mkdirSync(path.dirname(destination),{recursive:true,mode:0o700});
+  fs.mkdirSync(path.dirname(config.filename),{recursive:true,mode:0o700});
   const parent = fs.lstatSync(path.dirname(destination));
   if (!parent.isDirectory() || parent.uid !== process.getuid() || (parent.mode & 0o022)) {
     throw new Error('Hamster hook directory must be owned by the current user');
@@ -102,13 +105,15 @@ function installHooks(directory, source, provider = 'codex') {
     throw new Error('Unexpected Hamster hook executable');
   }
 
-  let changed = removeHookCommands(hooks,profile,[hookCommand(directory,provider,previousBridgeVersion)]);
+  const older = versions(provider).slice(0,-1).map(version => hookCommand(directory,provider,version));
+  let changed = removeHookCommands(hooks,profile,older);
   for (const event of profile.events) {
     hooks[event] ??= [];
     if (hooks[event].some(group => handlers(group,profile.flat).some(hook => matches(hook,command)))) continue;
     const handler = {type:'command',command,timeout:profile.timeout};
     if (provider === 'gemini') handler.name = 'hamster-'+event;
-    hooks[event].push(profile.flat ? handler : {hooks:[handler]});
+    const matcher = profile.matchers?.[event];
+    hooks[event].push(profile.flat ? handler : {...(matcher ? {matcher} : {}),hooks:[handler]});
     changed = true;
   }
   if (profile.flat && config.document.version === undefined) {
@@ -141,7 +146,7 @@ function removeHookCommands(hooks, profile, commands) {
 function removeHooks(directory, provider = 'codex') {
   const profile = providers[provider];
   const config = readConfig(directory,profile);
-  const commands = [previousBridgeVersion,currentBridgeVersion].map(version => hookCommand(directory,provider,version));
+  const commands = versions(provider).map(version => hookCommand(directory,provider,version));
   if (removeHookCommands(config.document.hooks,profile,commands)) storeConfig(directory,config);
 }
 
