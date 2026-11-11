@@ -1,18 +1,39 @@
+<div align="center">
+
+<img src="docs/readme/media/icon.png" width="96" alt="">
+
 # Hamster
 
-English | [한국어](docs/readme/README.ko.md)
+**A little hamster that keeps you company at the bottom of your Mac screen while your AI coding tools work.**
 
-A small hamster that lives at the bottom of your Mac screen and keeps you company while your AI coding tools work.
+[Download](https://github.com/fbwndrud/hamster/releases/latest) · [Install](#install) · [Privacy](#privacy) · [한국어](docs/readme/README.ko.md)
 
-When you send a request, its ears perk up. While the AI works, it taps its paws. When the reply lands, it tilts its head. Between tasks it blinks, sniffs, and looks around. Spend time working together and it earns snacks, gifts, and outfits you can dress it in.
+![Latest release](https://img.shields.io/github/v/release/fbwndrud/hamster?label=release&color=f2a65a) ![macOS · Apple Silicon](https://img.shields.io/badge/macOS-Apple%20Silicon-8a6f5a) ![Code: MIT](https://img.shields.io/badge/code-MIT-6b8f71)
+
+</div>
+
+## It reacts while the AI works
+
+| Send a prompt | While it works | When the reply lands |
+| :---: | :---: | :---: |
+| <img src="docs/readme/media/request.gif" width="160" alt="The hamster's ears perk up"> | <img src="docs/readme/media/work.gif" width="160" alt="The hamster taps its paws"> | <img src="docs/readme/media/reply.gif" width="160" alt="The hamster tilts its head"> |
+| Ears perk up | Little paws tap | A little head tilt |
+
+Works with **Codex, Claude Code, Cursor Agent, Gemini CLI and Grok** through their hook systems. With no AI tool connected, it reacts to your own typing instead. Between tasks it blinks, sniffs and looks around.
+
+## Play together
+
+| Pet it | High five | Open a gift |
+| :---: | :---: | :---: |
+| <img src="docs/readme/media/pat.gif" width="160" alt="The hamster enjoys a pat"> | <img src="docs/readme/media/highfive.gif" width="160" alt="The hamster gives a high five"> | <img src="docs/readme/media/gift.gif" width="160" alt="The hamster opens a gift box"> |
+| A gentle pat while it rests | Tap its paw after a reply | Earned by working together |
 
 ## Features
 
-- Reacts to Codex, Claude Code, Cursor Agent, Gemini CLI, and Grok through their hook systems.
-- Shows time worked together with each tool, and token usage for Codex, Claude Code, Gemini CLI (experimental), and Grok.
-- Reacts to your own typing when no AI tool is connected.
-- 12 motions and 40 accessories for head, face, and neck, with saved outfits.
-- Rewards based on time spent working together. No accounts, no ads, no tracking.
+- **Time together.** Every tool's menu shows how long you've worked with it today and in total. Snacks and gifts come from that time, not from how many tokens you spend.
+- **Token usage** for Codex, Claude Code, Grok and Gemini CLI (experimental), read only from the records each tool already keeps on your Mac.
+- **A wardrobe.** 40 accessories for the head, face and neck, with saved outfits.
+- **No accounts, no ads, no tracking.** The only network request is the update check.
 - Korean and English.
 
 ## Install

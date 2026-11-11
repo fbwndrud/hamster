@@ -1,19 +1,40 @@
+<div align="center">
+
+<img src="media/icon.png" width="96" alt="">
+
 # Hamster
 
-[English](../../README.md) | 한국어
+**AI 코딩 도구가 일하는 동안 Mac 화면 아래에서 곁을 지키는 작은 햄스터.**
 
-Mac 화면 아래에 살면서 AI 코딩 도구가 일하는 동안 곁에 있는 작은 햄스터입니다.
+[받기](https://github.com/fbwndrud/hamster/releases/latest) · [설치](#설치) · [개인정보](#개인정보) · [English](../../README.md)
 
-요청을 보내면 귀를 쫑긋하고, AI가 일하는 동안 앞발을 두드리고, 답이 오면 고개를 기울입니다. 일이 없을 때는 눈을 깜빡이고 킁킁거리고 두리번거립니다. 함께 일한 시간만큼 간식과 선물을 받고, 장식으로 차림을 꾸밀 수 있습니다.
+![최신 릴리스](https://img.shields.io/github/v/release/fbwndrud/hamster?label=release&color=f2a65a) ![macOS · Apple Silicon](https://img.shields.io/badge/macOS-Apple%20Silicon-8a6f5a) ![코드: MIT](https://img.shields.io/badge/code-MIT-6b8f71)
+
+</div>
+
+## AI가 일하는 동안 이렇게 반응해요
+
+| 요청을 보내면 | 일하는 동안 | 답이 오면 |
+| :---: | :---: | :---: |
+| <img src="media/request.gif" width="160" alt="귀를 쫑긋하는 햄스터"> | <img src="media/work.gif" width="160" alt="앞발을 두드리는 햄스터"> | <img src="media/reply.gif" width="160" alt="고개를 기울이는 햄스터"> |
+| 귀가 쫑긋 | 앞발이 톡톡 | 고개를 갸웃 |
+
+**Codex, Claude Code, Cursor Agent, Gemini CLI, Grok**의 훅으로 반응합니다. 연결한 AI 도구가 없으면 직접 입력할 때 반응합니다. 일이 없을 때는 눈을 깜빡이고 킁킁거리고 두리번거립니다.
+
+## 같이 놀기
+
+| 쓰다듬기 | 하이파이브 | 선물 열기 |
+| :---: | :---: | :---: |
+| <img src="media/pat.gif" width="160" alt="쓰다듬어 주면 좋아하는 햄스터"> | <img src="media/highfive.gif" width="160" alt="하이파이브하는 햄스터"> | <img src="media/gift.gif" width="160" alt="선물 상자를 여는 햄스터"> |
+| 쉬고 있을 때 살살 | 답이 온 뒤 앞발을 톡 | 함께 일하면 받아요 |
 
 ## 기능
 
-- Codex, Claude Code, Cursor Agent, Gemini CLI, Grok의 훅으로 반응합니다.
-- 도구마다 함께 일한 시간을 보여 주고, Codex·Claude Code·Gemini CLI(실험)·Grok은 토큰 사용량도 보여 줍니다.
-- AI 도구를 연결하지 않으면 내가 입력할 때 반응합니다.
-- 동작 12가지와 머리·얼굴·목 장식 40개가 있고, 차림을 저장할 수 있습니다.
-- 보상은 함께 일한 시간으로 받습니다. 계정·광고·추적이 없습니다.
-- 한국어와 영어를 지원합니다.
+- **함께 일한 시간.** 도구마다 오늘과 누적으로 함께 일한 시간을 보여 줍니다. 간식과 선물은 토큰을 얼마나 썼는지가 아니라 이 시간으로 받습니다.
+- **토큰 사용량.** Codex, Claude Code, Grok, Gemini CLI(실험)는 각 도구가 이미 Mac에 남기는 기록에서 토큰 숫자만 읽어 보여 줍니다.
+- **옷장.** 머리·얼굴·목 장식 40가지와 저장한 차림.
+- **계정·광고·추적 없음.** 네트워크 요청은 업데이트 확인 하나뿐입니다.
+- 한국어와 영어.
 
 ## 설치
 
