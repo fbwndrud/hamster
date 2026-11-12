@@ -37,6 +37,8 @@ wrangler pages project create <새-프로젝트-이름> --production-branch main
 wrangler pages deploy <저장소-경로>/hamster-site/dist --project-name <새-프로젝트-이름> --branch main
 ```
 
+2026-11-12 Pages 프로젝트 `hamster`를 만들었다. 운영 주소는 https://hamster-34x.pages.dev/ 이다. 이후 배포는 `wrangler pages deploy <저장소-경로>/hamster-site/dist --project-name hamster --branch main`만 실행한다. Wrangler 4.160은 새 프로젝트를 만들 때 Workers로 넘기려다 실패하므로, 프로젝트를 처음 만들 때만 `--force`를 붙였다.
+
 배포 후 Wrangler가 반환한 운영 주소에서 한국어·영어 페이지와 데모를 확인한다. [Cloudflare Direct Upload](https://developers.cloudflare.com/pages/get-started/direct-upload/) · [Cloudflare Pages 무료 한도](https://developers.cloudflare.com/pages/platform/limits/)
 
 사이트에는 앱 파일을 올리지 않는다. 앱 파일은 GitHub Releases에서만 내려받는다. 릴리스를 올리기 전에는 새 Mac에서 내려받기, 처음 열기, 연결, 업데이트, 제거를 한 번 끝까지 확인한다.
