@@ -19,7 +19,7 @@
 | <img src="docs/readme/media/request.gif" width="160" alt="The hamster's ears perk up"> | <img src="docs/readme/media/work.gif" width="160" alt="The hamster taps its paws"> | <img src="docs/readme/media/reply.gif" width="160" alt="The hamster tilts its head"> |
 | Ears perk up | Little paws tap | A little head tilt |
 
-Works with **Codex, Claude Code, Cursor Agent, Gemini CLI and Grok** through their hook systems. With no AI tool connected, it reacts to your own typing instead. Between tasks it blinks, sniffs and looks around.
+Works with Codex, Claude Code, Cursor Agent, Gemini CLI and Grok through their hook systems. With no AI tool connected, it reacts to your own typing instead. Between tasks it blinks, sniffs and looks around.
 
 ## Play together
 
@@ -30,10 +30,10 @@ Works with **Codex, Claude Code, Cursor Agent, Gemini CLI and Grok** through the
 
 ## Features
 
-- **Time together.** Every tool's menu shows how long you've worked with it today and in total. Snacks and gifts come from that time.
-- **Token usage** for Codex, Claude Code, Grok and Gemini CLI (experimental), read only from the records each tool already keeps on your Mac.
-- **A wardrobe.** 40 accessories for the head, face and neck, with saved outfits.
-- **No accounts, no ads, no tracking.** The only network request is the update check.
+- Every tool's menu shows how long you've worked with it today and in total. Snacks and gifts come from that time.
+- Token usage for Codex, Claude Code, Grok and Gemini CLI (experimental), read only from the records each tool already keeps on your Mac.
+- 40 accessories for the head, face and neck, with saved outfits.
+- No accounts, no ads, no tracking. The only network request is the update check.
 - Korean and English.
 
 ## Install

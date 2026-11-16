@@ -1,9 +1,7 @@
 # Security
 
 Hamster adds hooks to your AI coding tools' config files and can replace itself
-when you click the update item, so security reports matter a lot.
-
-Please report vulnerabilities privately through
+when you click the update item. Report vulnerabilities privately through
 [GitHub security advisories](https://github.com/fbwndrud/hamster/security/advisories/new),
 not as a public issue.
 
