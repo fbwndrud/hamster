@@ -30,7 +30,7 @@ Works with **Codex, Claude Code, Cursor Agent, Gemini CLI and Grok** through the
 
 ## Features
 
-- **Time together.** Every tool's menu shows how long you've worked with it today and in total. Snacks and gifts come from that time, not from how many tokens you spend.
+- **Time together.** Every tool's menu shows how long you've worked with it today and in total. Snacks and gifts come from that time.
 - **Token usage** for Codex, Claude Code, Grok and Gemini CLI (experimental), read only from the records each tool already keeps on your Mac.
 - **A wardrobe.** 40 accessories for the head, face and neck, with saved outfits.
 - **No accounts, no ads, no tracking.** The only network request is the update check.
@@ -147,7 +147,7 @@ The Windows beta does not update itself. The public key that checks the Mac sign
 
 ## Support
 
-Hamster is free. If it made your day a little nicer, you can [buy me a coffee on Ko-fi](https://ko-fi.com/junelyoo). There are no rewards for supporting; it just helps me keep building.
+Hamster is free. If you like it, you can [buy me a coffee on Ko-fi](https://ko-fi.com/junelyoo).
 
 ## License
 

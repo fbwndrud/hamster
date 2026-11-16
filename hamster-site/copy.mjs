@@ -39,7 +39,7 @@ export const copy = {
       guide: '설치 안내',
       source: '소스 코드',
       note: 'macOS 13 이상 · Windows 11 베타(x64, arm64) · 코드는 MIT 라이선스예요. 햄스터 그림은 다시 배포할 수 없어요.',
-      support: ['마음에 들었다면', 'Ko-fi에서 커피 한 잔', '사 주세요. 선택이고, 보상은 없어요.'],
+      support: ['마음에 들었다면', 'Ko-fi에서 커피 한 잔', '사 주세요.'],
     },
     install: {
       title: 'Hamster — 설치 안내',
@@ -135,7 +135,7 @@ export const copy = {
       guide: 'Install guide',
       source: 'Source code',
       note: 'macOS 13+ · Windows 11 beta (x64, arm64) · The code is MIT licensed. The hamster artwork is not for redistribution.',
-      support: ['Like it?', 'Buy me a coffee on Ko-fi.', 'It’s optional, and there are no rewards.'],
+      support: ['Like it?', 'Buy me a coffee on Ko-fi.', ''],
     },
     install: {
       title: 'Hamster — Install guide',
