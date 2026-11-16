@@ -71,7 +71,7 @@ async function verify() {
     assert.equal(await page.locator('link[rel="icon"]').getAttribute('href'), '/assets/hamster-icon.png');
     assert.equal(await page.locator('.prompt').count(), 0);
     assert.equal(await page.locator('form, [download], a[href^="mailto:"]').count(), 0);
-    assert.doesNotMatch(await page.locator('body').innerText(), /준비 중|베타/);
+    assert.doesNotMatch(await page.locator('body').innerText(), /준비 중/);
     await checkDownload(page, '/install/', 'ko');
     assert.equal(await page.locator('[data-pet]').getAttribute('src'), '/assets/idle.png');
     assert.equal(await page.locator('#demo [data-step]:visible').count(), 6);
@@ -114,7 +114,7 @@ async function verify() {
     await page.getByRole('banner').getByRole('link', { name: 'English' }).click();
     assert.equal(await page.locator('html').getAttribute('lang'), 'en');
     assert.match(await page.locator('h1').innerText(), /hamster/i);
-    assert.doesNotMatch(await page.locator('body').innerText(), /in preparation|beta/i);
+    assert.doesNotMatch(await page.locator('body').innerText(), /in preparation/i);
     await checkDownload(page, '/en/install/', 'en');
 
     await page.emulateMedia({ reducedMotion: 'reduce' });

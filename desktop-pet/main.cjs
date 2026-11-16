@@ -25,8 +25,9 @@ require('./assets/wardrobe.js');
 require('./assets/clips.js');
 const {wardrobe, clips} = globalThis.Hamster;
 
-const directory = '/private/tmp/codex-hamster-' + process.getuid();
-const socketPath = path.join(directory, 'events.sock');
+const {platform,runtimeDirectory,ownedByCurrentUser,isPrivate,endpoint} = require('./platform.cjs');
+const directory = runtimeDirectory();
+const socketPath = endpoint();
 const statePath = path.join(directory, 'status.json');
 const size = 168;
 const interactionZones = {pat:[57,58,54,44],highfive:[100,113,44,44],gift:[120,11,44,44]};
@@ -43,7 +44,7 @@ const hookProviders = [
 ];
 // Cursor keeps no token counts on this Mac, so it shows time worked together only.
 const tokenProviders = new Set(['codex','claude','gemini','grok']);
-const hookExecutable = path.join(__dirname,'codex-hook-v2');
+const hookExecutable = path.join(__dirname,platform.windows ? 'hook-bridge.cjs' : 'codex-hook-v2');
 const installedBundle = path.resolve(__dirname,'../../..');
 const updateExecutable = path.join(__dirname,'update-mac');
 const canUpdate = path.extname(installedBundle) === '.app' && fs.existsSync(updateExecutable);
@@ -52,7 +53,7 @@ let updateReady = process.argv.find(arg => arg.startsWith(readyPrefix))?.slice(r
 
 fs.mkdirSync(directory, {mode:0o700, recursive:true});
 const stat = fs.lstatSync(directory);
-if (!stat.isDirectory() || stat.uid !== process.getuid() || (stat.mode & 0o077)) {
+if (!stat.isDirectory() || !ownedByCurrentUser(stat) || !isPrivate(stat)) {
   throw new Error('Hamster runtime directory must be private and owned by this user.');
 }
 app.setPath('userData', path.join(directory,'electron'));
@@ -445,7 +446,7 @@ if ((canUpdate && updateInProgress(installedBundle,updateReady)) || !app.request
     if (!tray || tray.isDestroyed()) return;
     const strings = text();
     const available = canUpdate && updates.state.update;
-    tray.setTitle(available ? ' •' : '');
+    if (!platform.windows) tray.setTitle(available ? ' •' : '');
     tray.setToolTip(available ? strings.updateAvailable(available.version) : strings.name);
   }
 
@@ -526,7 +527,7 @@ if ((canUpdate && updateInProgress(installedBundle,updateReady)) || !app.request
         path.dirname(stage) !== path.dirname(installedBundle)) return;
     try {
       const stat = fs.lstatSync(stage);
-      if (stat.isDirectory() && stat.uid === process.getuid() && !(stat.mode & 0o077)) {
+      if (stat.isDirectory() && ownedByCurrentUser(stat) && isPrivate(stat)) {
         fs.writeFileSync(marker,'',{flag:'wx',mode:0o600});
       }
     } catch (error) {
@@ -699,7 +700,8 @@ if ((canUpdate && updateInProgress(installedBundle,updateReady)) || !app.request
   }
 
   function listen() {
-    try {
+    // A Windows named pipe is not a file: there is nothing stale to remove.
+    if (!platform.windows) try {
       if (!fs.lstatSync(socketPath).isSocket()) throw new Error('Existing event path is not a socket.');
       fs.unlinkSync(socketPath);
     } catch (error) {
@@ -739,14 +741,14 @@ if ((canUpdate && updateInProgress(installedBundle,updateReady)) || !app.request
       status();
     });
     server.listen(socketPath, () => {
-      fs.chmodSync(socketPath,0o600);
+      if (!platform.windows) fs.chmodSync(socketPath,0o600);
       listening = true;
       status();
     });
   }
 
   app.whenReady().then(() => {
-    app.setActivationPolicy('accessory');
+    if (process.platform === 'darwin') app.setActivationPolicy('accessory');
     win = new BrowserWindow({
       width:size, height:size, frame:false, transparent:true, hasShadow:false,
       resizable:false, focusable:false, skipTaskbar:true, show:false, backgroundColor:'#00000000',
@@ -817,8 +819,9 @@ if ((canUpdate && updateInProgress(installedBundle,updateReady)) || !app.request
     });
     for (const event of ['display-added','display-removed','display-metrics-changed']) screen.on(event,position);
     position();
-    const trayIcon = nativeImage.createFromPath(path.join(__dirname,'assets','tray.png'));
-    trayIcon.setTemplateImage(true);
+    // macOS draws a monochrome template image; Windows shows a colored icon.
+    const trayIcon = nativeImage.createFromPath(path.join(__dirname,'assets',platform.windows ? 'tray-win.png' : 'tray.png'));
+    if (!platform.windows) trayIcon.setTemplateImage(true);
     tray = new Tray(trayIcon);
     syncUpdateIndicator();
     refreshUpdates();

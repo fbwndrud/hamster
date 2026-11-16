@@ -14,6 +14,8 @@ The app is written to `output/desktop/Hamster.app`. A build made on your own Mac
 
 It still checks this repository for updates. To turn that off in your fork, change the manifest URL and public key in [`distribution.cjs`](../desktop-pet/distribution.cjs).
 
+For the Windows beta, run `npm run package:win --prefix desktop-pet -- x64` (or `arm64`) on any machine with Node.js 22 or later. It downloads the matching Electron build and writes an unsigned folder and zip under `output/desktop-win`.
+
 The project website is built from [`hamster-site/`](../hamster-site).
 
 ---
@@ -31,5 +33,7 @@ npm run package:mac --prefix desktop-pet -- --bootstrap
 앱은 `output/desktop/Hamster.app`에 만들어집니다. 내 Mac에서 빌드한 앱은 내려받은 파일로 표시되지 않아 **그래도 열기** 단계 없이 열립니다.
 
 업데이트는 여전히 이 저장소에서 확인합니다. 포크에서 끄려면 [`distribution.cjs`](../desktop-pet/distribution.cjs)의 매니페스트 주소와 공개키를 바꿉니다.
+
+Windows 베타는 Node.js 22 이상이 있는 아무 컴퓨터에서 `npm run package:win --prefix desktop-pet -- x64`(또는 `arm64`)로 빌드합니다. 해당 Electron 빌드를 내려받아 `output/desktop-win` 아래에 서명 없는 폴더와 zip을 만듭니다.
 
 소개 페이지는 [`hamster-site/`](../hamster-site)에서 빌드합니다.

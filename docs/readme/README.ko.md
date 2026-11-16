@@ -4,11 +4,11 @@
 
 # Hamster
 
-**AI 코딩 도구가 일하는 동안 Mac 화면 아래에서 곁을 지키는 작은 햄스터.**
+**AI 코딩 도구가 일하는 동안 화면 아래에서 곁을 지키는 작은 햄스터.** Mac용이고, Windows 11용은 베타입니다.
 
-[소개 페이지](https://hamster-34x.pages.dev/) · [받기](https://github.com/fbwndrud/hamster/releases/latest) · [설치](#설치) · [개인정보](#개인정보) · [English](../../README.md)
+[소개 페이지](https://hamster-34x.pages.dev/) · [받기](https://github.com/fbwndrud/hamster/releases/latest) · [설치](#설치) · [Windows 베타](#windows-베타) · [개인정보](#개인정보) · [English](../../README.md)
 
-![최신 릴리스](https://img.shields.io/github/v/release/fbwndrud/hamster?label=release&color=f2a65a) ![macOS 13+ · Apple Silicon](https://img.shields.io/badge/macOS%2013%2B-Apple%20Silicon-8a6f5a) ![코드: MIT](https://img.shields.io/badge/code-MIT-6b8f71)
+![최신 릴리스](https://img.shields.io/github/v/release/fbwndrud/hamster?label=release&color=f2a65a) ![macOS 13+ · Apple Silicon](https://img.shields.io/badge/macOS%2013%2B-Apple%20Silicon-8a6f5a) ![Windows 11 베타](https://img.shields.io/badge/Windows%2011-beta-8a6f5a) ![코드: MIT](https://img.shields.io/badge/code-MIT-6b8f71)
 
 </div>
 
@@ -38,7 +38,7 @@
 
 ## 설치
 
-Apple 실리콘(M1 이후) Mac과 macOS 13 이상이 필요합니다. Intel Mac은 지원하지 않습니다.
+이 항목은 Mac용입니다. Apple 실리콘(M1 이후) Mac과 macOS 13 이상이 필요하고 Intel Mac은 지원하지 않습니다. Windows는 [Windows 베타](#windows-베타)를 보세요.
 
 ### 1. 내려받기
 
@@ -46,8 +46,9 @@ Apple 실리콘(M1 이후) Mac과 macOS 13 이상이 필요합니다. Intel Mac�
 
 | 릴리스 페이지의 파일 | 용도 |
 | --- | --- |
-| `Hamster-<버전>.zip` | 앱입니다. 이 파일을 받습니다. |
-| `Hamster-<버전>.zip.sha256` | [내려받은 파일 확인](#내려받은-파일-확인)용 체크섬입니다. 선택 사항입니다. |
+| `Hamster-<버전>.zip` | Mac 앱입니다. Mac에서는 이 파일을 받습니다. |
+| `Hamster-<버전>-win-x64.zip`, `Hamster-<버전>-win-arm64.zip` | Windows 베타입니다. [Windows 베타](#windows-베타)를 보세요. |
+| `*.sha256` | [내려받은 파일 확인](#내려받은-파일-확인)용 체크섬입니다. 선택 사항입니다. |
 | `latest.json` | 앱이 업데이트를 찾을 때 읽는 파일입니다. 받을 필요 없습니다. |
 | Source code (zip, tar.gz) | GitHub가 자동으로 붙이는 소스입니다. 앱 실행에는 필요 없습니다. |
 
@@ -93,6 +94,23 @@ shasum -a 256 ~/Downloads/Hamster-*.zip
 2. 메뉴에서 Hamster를 종료하고 `Hamster.app`을 휴지통으로 옮깁니다.
 3. 원하면 `~/Library/Application Support/Codex Hamster/`(설정과 보상)와 각 도구 설정 폴더 안의 `hamster` 폴더(예: `~/.codex/hamster`)도 지웁니다.
 
+## Windows 베타
+
+Windows 버전은 **베타**입니다. 서명이 없고 자동 업데이트도 없으며, 실제로 실행해 본 것은 Windows 11 arm64뿐입니다. x64 빌드는 같은 코드로 만들었지만 실제 PC에서는 아직 실행해 보지 못했습니다.
+
+1. [최신 릴리스](https://github.com/fbwndrud/hamster/releases/latest)에서 `Hamster-<버전>-win-x64.zip`(일반 PC) 또는 `Hamster-<버전>-win-arm64.zip`(Arm PC)을 받습니다. 확인하려면 PowerShell에서 `Get-FileHash $HOME\Downloads\Hamster-*-win-*.zip` 결과를 같은 이름의 `.sha256` 파일 값과 비교합니다.
+2. 압축을 풀고 `Hamster` 폴더를 원하는 곳(예: `C:\Users\<이름>\Hamster`)으로 옮긴 뒤 안의 `Hamster.exe`를 더블클릭합니다.
+3. SmartScreen이 "Windows의 PC 보호"를 띄우면 **추가 정보** → **실행**을 누릅니다. Smart App Control을 켠 PC에서는 서명 없는 앱이 막힐 수 있습니다. 평가 모드에서는 막히지 않았지만 켜짐 상태는 시험하지 못했습니다.
+4. 펫은 작업 영역 오른쪽 아래, 작업 표시줄 위에 나타나고 트레이 아이콘은 숨겨진 아이콘 영역에 생깁니다. 그 메뉴에서 **AI 연결 → 도구 이름 → [도구] 훅 설치…**를 고릅니다.
+
+훅 파일 이름은 Mac과 같고 위치만 `%USERPROFILE%` 아래입니다(예: `%USERPROFILE%\.claude\settings.json`). 도구 폴더의 `hamster` 안에 `.cmd` 도우미가 만들어지고, 설정과 보상은 `%APPDATA%\Codex Hamster`에 저장됩니다. 지울 때는 도구마다 **Hamster 훅 제거**를 누르고 Hamster를 종료한 뒤 폴더를 지웁니다.
+
+알려진 한계:
+
+- 업데이트하려면 새 zip을 받아 폴더를 바꿔야 합니다. Windows 빌드는 업데이트를 확인하지 않습니다.
+- 훅 명령은 cmd.exe에서만 확인했습니다. Claude Code가 Windows에서 PowerShell로 훅을 실행하면 실패할 수 있습니다. Codex, Cursor Agent, Gemini CLI, Grok의 Windows 동작은 아직 확인하지 못했습니다.
+- 화면 배율(DPI), 작업 표시줄 자동 숨김, 여러 모니터는 시험하지 못했습니다.
+
 ## Mac에서 바꾸는 것
 
 도구를 연결하면 그 도구의 사용자 설정에 Hamster 항목만 추가되고 다른 설정은 그대로 둡니다. **Hamster 훅 제거**를 누르면 다시 빠집니다.
@@ -107,7 +125,7 @@ shasum -a 256 ~/Downloads/Hamster-*.zip
 
 Grok은 Claude Code와 Cursor의 훅 파일도 실행합니다. 도우미 프로그램은 그 호출을 무시하므로 Grok 작업은 Grok으로 한 번만 셉니다.
 
-훅 도우미([`codex-hook.swift`](../../desktop-pet/codex-hook.swift))는 이벤트 종류와 해시한 턴 ID만 로컬 소켓으로 보냅니다. 설치 코드는 [`codex-install.cjs`](../../desktop-pet/codex-install.cjs)에 있습니다. 설정과 보상은 `~/Library/Application Support/Codex Hamster/`에 저장됩니다.
+훅 도우미(Mac은 [`codex-hook.swift`](../../desktop-pet/codex-hook.swift), Windows는 [`hook-bridge.cjs`](../../desktop-pet/hook-bridge.cjs))는 이벤트 종류와 해시한 턴 ID만 로컬 소켓이나 네임드 파이프로 보냅니다. 설치 코드는 [`codex-install.cjs`](../../desktop-pet/codex-install.cjs)에 있습니다. 설정과 보상은 `~/Library/Application Support/Codex Hamster/`에 저장됩니다.
 
 ## 개인정보
 
@@ -117,9 +135,9 @@ Grok은 Claude Code와 Cursor의 훅 파일도 실행합니다. 도우미 프로
 
 ## 업데이트
 
-새 릴리스가 있으면 메뉴에 **업데이트 설치**가 보입니다. 누르기 전에는 아무것도 내려받지 않습니다. 누르면 릴리스를 내려받고, 매니페스트에 올바른 Ed25519 서명이 있는지와 파일이 서명된 SHA-256·크기와 같은지 확인한 뒤에만 앱을 교체합니다. 새 버전이 실행되지 않으면 이전 버전으로 돌아갑니다.
+Mac에서는 새 릴리스가 있으면 메뉴에 **업데이트 설치**가 보입니다. 누르기 전에는 아무것도 내려받지 않습니다. 누르면 릴리스를 내려받고, 매니페스트에 올바른 Ed25519 서명이 있는지와 파일이 서명된 SHA-256·크기와 같은지 확인한 뒤에만 앱을 교체합니다. 새 버전이 실행되지 않으면 이전 버전으로 돌아갑니다.
 
-서명을 확인하는 공개키는 [`distribution.cjs`](../../desktop-pet/distribution.cjs)에 있습니다. 릴리스에 서명할 수 있는 것은 짝이 되는 비밀키뿐이고, 비밀키는 이 저장소에 없습니다.
+Windows 베타는 스스로 업데이트하지 않습니다. Mac 서명을 확인하는 공개키는 [`distribution.cjs`](../../desktop-pet/distribution.cjs)에 있습니다. 릴리스에 서명할 수 있는 것은 짝이 되는 비밀키뿐이고, 비밀키는 이 저장소에 없습니다.
 
 ## 의견
 

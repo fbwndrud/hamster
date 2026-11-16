@@ -1,14 +1,14 @@
 export const copy = {
   ko: {
     title: 'Hamster — 화면 아래 작은 작업 친구',
-    description: '일하는 동안 맥 화면 아래에 앉아 있는 작은 햄스터. Codex가 일할 때는 앞발을 두드려요.',
+    description: '일하는 동안 Mac과 Windows(베타) 화면 아래에 앉아 있는 작은 햄스터. Codex가 일할 때는 앞발을 두드려요.',
     skip: '본문으로 건너뛰기',
     nav: ['작업 데모', '옷장', '다운로드'],
-    eyebrow: 'Mac용 데스크톱 펫',
+    eyebrow: 'Mac · Windows 베타 데스크톱 펫',
     headline: ['화면 아래에', '햄스터가 살아요.'],
     intro: '일하는 동안 화면 아래에 앉아 있어요. Codex에 일을 맡기면 앞발이 바빠져요.',
     see: '햄스터 움직여 보기',
-    platform: 'Apple Silicon Mac · 무료 · 오픈소스',
+    platform: 'Apple Silicon Mac · Windows 베타 · 무료 · 오픈소스',
     scene: '앱 그림으로 재현한 데모',
     status: '데모 상태',
     idle: '햄스터가 화면 아래에서 쉬고 있어요',
@@ -32,13 +32,13 @@ export const copy = {
     looksLabel: '차림 미리보기',
     looks: ['기본 차림', '포근한 날', '비 오는 날', '졸린 밤', '하트 스티커'],
     download: {
-      label: 'APPLE SILICON MAC',
+      label: 'MAC · WINDOWS 베타',
       title: '무료로 받아 보세요',
-      copy: '무료 오픈소스 Mac 앱이에요. Apple 서명 없이 배포해서, 처음 열 때 승인이 한 번 더 필요해요.',
+      copy: '무료 오픈소스 앱이에요. Mac(Apple Silicon)용과 Windows 11 베타용을 함께 올려요. 서명 없이 배포해서, 처음 열 때 승인이 한 번 더 필요해요.',
       button: 'GitHub에서 받기',
       guide: '설치 안내',
       source: '소스 코드',
-      note: 'macOS 전용 · 코드는 MIT 라이선스예요. 햄스터 그림은 다시 배포할 수 없어요.',
+      note: 'macOS 13 이상 · Windows 11 베타(x64, arm64) · 코드는 MIT 라이선스예요. 햄스터 그림은 다시 배포할 수 없어요.',
       support: ['마음에 들었다면', 'Ko-fi에서 커피 한 잔', '사 주세요. 선택이고, 보상은 없어요.'],
     },
     install: {
@@ -46,7 +46,7 @@ export const copy = {
       description: 'Hamster를 받아 설치하고, AI 도구에 연결하고, 지우는 방법. 수정하는 파일과 훅 이벤트 목록도 있어요.',
       eyebrow: '설치 안내',
       heading: 'Hamster 설치하기',
-      lead: 'Hamster는 무료 오픈소스 Mac 앱이에요. Apple 서명과 공증 없이 GitHub Releases로 배포해서 처음 열 때 승인이 한 번 더 필요해요. 아래 순서대로 따라 하면 돼요.',
+      lead: 'Hamster는 무료 오픈소스 앱이에요. 1~4번은 Mac(Apple Silicon)용이고 Windows 베타 안내는 아래 별도 항목에 있어요. 두 버전 모두 서명과 공증 없이 GitHub Releases로 배포해서 처음 열 때 승인이 한 번 더 필요해요.',
       tableLabel: 'AI 도구별 수정 파일과 훅 이벤트',
       tableHead: ['도구', '수정하는 파일', '훅 이벤트'],
       sections: [
@@ -68,8 +68,19 @@ export const copy = {
       {{table}}
       <p class="small">CODEX_HOME, CLAUDE_CONFIG_DIR, GEMINI_CLI_HOME, GROK_HOME 환경 변수를 설정했다면 그 폴더를 써요. 각 폴더의 <code>hamster</code> 폴더에는 작은 도우미 프로그램(<code>codex-hook-v2</code>, <code>ai-hook-v2</code> 또는 <code>ai-hook-v3</code>)이 복사되고, 훅이 그 프로그램을 가리켜요.</p>
       <p>Codex는 설치 뒤 Settings → Hooks에서 Hamster 훅을 승인해야 해요. Claude Code, Gemini CLI, Grok은 새 세션에서 <code>/hooks</code>(Gemini는 <code>/hooks list</code>)로 확인해요. Cursor는 Hooks 설정에서 확인해요. Grok은 Claude Code 훅도 함께 실행하지만, Hamster는 Grok의 신호를 Grok 훅에서만 받아요.</p>` },
+        { id: 'windows', heading: 'Windows 베타', html: `
+      <p>Windows 버전은 베타예요. Windows 11 arm64에서만 실제로 실행해 확인했고, x64 빌드는 같은 코드로 만들었지만 아직 실제 PC에서 확인하지 못했어요. 코드 서명이 없고 자동 업데이트도 없어요.</p>
+      <ol>
+        <li><a href="{{releases}}">GitHub Releases</a>에서 내 PC에 맞는 zip을 받아요. 일반 PC는 <code>Hamster-&lt;버전&gt;-win-x64.zip</code>, Arm PC는 <code>Hamster-&lt;버전&gt;-win-arm64.zip</code>이에요. 같은 이름에 <code>.sha256</code>을 붙인 파일에 확인용 값이 있어요.</li>
+        <li>PowerShell에서 <code>Get-FileHash $HOME\Downloads\Hamster-*-win-*.zip</code>으로 값을 확인해요. 값이 다르면 열지 말고 Issues에 알려 주세요.</li>
+        <li>zip을 풀고 <code>Hamster</code> 폴더를 원하는 곳(예: <code>C:\Users\&lt;이름&gt;\Hamster</code>)에 옮겨요. 바로 아래 <code>Hamster.exe</code>를 더블클릭해요.</li>
+        <li>SmartScreen이 “Windows의 PC 보호”를 띄우면 <strong>추가 정보</strong> → <strong>실행</strong>을 눌러요. Smart App Control을 켜 둔 PC에서는 서명 없는 앱이 막힐 수 있어요. 평가 모드에서는 막히지 않는 것을 확인했지만, 켜짐 상태는 확인하지 못했어요.</li>
+        <li>펫은 작업 영역 오른쪽 아래, 작업 표시줄 위에 나타나요. 트레이 아이콘은 숨겨진 아이콘 영역에 생겨요. 그 아이콘의 메뉴에서 <strong>AI 연결</strong>을 쓰면 돼요.</li>
+      </ol>
+      <p>훅 파일은 Mac과 같은 이름이고 위치만 <code>%USERPROFILE%</code> 아래예요(예: <code>%USERPROFILE%\.claude\settings.json</code>). 폴더의 <code>hamster</code> 안에 <code>.cmd</code> 도우미가 만들어지고, 지울 때는 <strong>Hamster 훅 제거</strong> 뒤 Hamster를 종료하고 폴더를 지우면 돼요. 설정과 보상은 <code>%APPDATA%\Codex Hamster</code>에 있어요.</p>
+      <p>알려진 한계: 새 버전은 zip을 다시 받아 폴더를 바꿔야 해요. 훅 명령은 cmd.exe에서만 확인했어요. Claude Code가 Windows에서 PowerShell로 훅을 실행하면 실패할 수 있고, Codex, Cursor, Gemini CLI, Grok의 Windows 동작도 아직 확인하지 못했어요. 이 베타는 Mac 버전만큼 시험하지 못했어요.</p>` },
         { id: 'updates', heading: '업데이트', html: `
-      <p>앱이 하루에 한두 번 GitHub 릴리스를 확인해요. 새 버전이 있으면 메뉴에 보여 주고, 내가 누를 때만 설치해요. 받은 파일은 서명을 확인한 뒤에만 설치해요.</p>` },
+      <p>Mac 앱은 하루에 한두 번 GitHub 릴리스를 확인해요. 새 버전이 있으면 메뉴에 보여 주고, 내가 누를 때만 설치해요. 받은 파일은 서명을 확인한 뒤에만 설치해요. Windows 베타는 업데이트를 확인하지 않아서 새 zip을 직접 받아야 해요.</p>` },
         { id: 'remove', heading: '지우기', html: `
       <ol>
         <li>AI 연결 → 도구 → <strong>Hamster 훅 제거</strong>를 눌러요. 연결한 도구마다 해요. 제거는 Hamster 훅만 지워요.</li>
@@ -86,14 +97,14 @@ export const copy = {
   },
   en: {
     title: 'Hamster — A little desktop pet for Mac',
-    description: 'A small hamster that sits at the bottom of your Mac screen and taps its paws while Codex works.',
+    description: 'A small hamster that sits at the bottom of your Mac or Windows (beta) screen and taps its paws while Codex works.',
     skip: 'Skip to content',
     nav: ['Demo', 'Wardrobe', 'Download'],
-    eyebrow: 'A desktop pet for Mac',
+    eyebrow: 'A desktop pet for Mac · Windows beta',
     headline: ['A little hamster', 'for your Mac.'],
     intro: 'It sits at the bottom of your screen while you work. Give Codex something to do and watch those paws go.',
     see: 'See the hamster move',
-    platform: 'Apple Silicon Mac · Free · Open source',
+    platform: 'Apple Silicon Mac · Windows beta · Free · Open source',
     scene: 'Demo made with artwork from the app',
     status: 'Demo status',
     idle: 'The hamster is resting at the bottom of the screen',
@@ -117,13 +128,13 @@ export const copy = {
     looksLabel: 'Outfit preview',
     looks: ['Everyday', 'Cozy day', 'Rainy day', 'Sleepy night', 'Heart sticker'],
     download: {
-      label: 'APPLE SILICON MAC',
+      label: 'MAC · WINDOWS BETA',
       title: 'Free to download.',
-      copy: 'A free, open source Mac app. It ships without an Apple signature, so the first launch needs one extra approval.',
+      copy: 'A free, open source app for Mac (Apple silicon) and a Windows 11 beta. Neither is signed, so the first launch needs one extra approval.',
       button: 'Download from GitHub',
       guide: 'Install guide',
       source: 'Source code',
-      note: 'macOS only · The code is MIT licensed. The hamster artwork is not for redistribution.',
+      note: 'macOS 13+ · Windows 11 beta (x64, arm64) · The code is MIT licensed. The hamster artwork is not for redistribution.',
       support: ['Like it?', 'Buy me a coffee on Ko-fi.', 'It’s optional, and there are no rewards.'],
     },
     install: {
@@ -131,7 +142,7 @@ export const copy = {
       description: 'How to download, install, connect and remove Hamster, including the files it edits and the hook events it uses.',
       eyebrow: 'Install guide',
       heading: 'Install Hamster',
-      lead: 'Hamster is a free, open source Mac app. It ships through GitHub Releases without Apple signing or notarization, so the first launch needs one extra approval. Follow these steps.',
+      lead: 'Hamster is a free, open source app. Steps 1 to 4 are for the Mac (Apple silicon); the Windows beta has its own section below. Both ship through GitHub Releases without code signing, so the first launch needs one extra approval.',
       tableLabel: 'Files edited and hook events for each AI tool',
       tableHead: ['Tool', 'File it edits', 'Hook events'],
       sections: [
@@ -153,8 +164,19 @@ export const copy = {
       {{table}}
       <p class="small">If you set CODEX_HOME, CLAUDE_CONFIG_DIR, GEMINI_CLI_HOME or GROK_HOME, Hamster uses that folder instead. Each folder also gets a <code>hamster</code> folder with a small helper program (<code>codex-hook-v2</code>, <code>ai-hook-v2</code> or <code>ai-hook-v3</code>) that the hooks point to.</p>
       <p>For Codex, approve the Hamster hooks in Settings → Hooks after installing. For Claude Code, Gemini CLI and Grok, open a new session and check <code>/hooks</code> (<code>/hooks list</code> in Gemini). For Cursor, check the Hooks settings. Grok also runs Claude Code hooks, but Hamster takes Grok’s signals only from the Grok hook.</p>` },
+        { id: 'windows', heading: 'Windows beta', html: `
+      <p>The Windows version is a beta. It has been run for real only on Windows 11 arm64. The x64 build comes from the same code but has not been run on a real PC yet. It is unsigned and has no automatic updates.</p>
+      <ol>
+        <li>Get the zip for your PC from <a href="{{releases}}">GitHub Releases</a>: <code>Hamster-&lt;version&gt;-win-x64.zip</code> for most PCs, <code>Hamster-&lt;version&gt;-win-arm64.zip</code> for Arm PCs. The same name plus <code>.sha256</code> holds the checksum.</li>
+        <li>Check it in PowerShell with <code>Get-FileHash $HOME\Downloads\Hamster-*-win-*.zip</code>. If the values differ, don’t open it. Tell us in Issues.</li>
+        <li>Unzip it and move the <code>Hamster</code> folder somewhere you like, such as <code>C:\Users\&lt;you&gt;\Hamster</code>. Double-click <code>Hamster.exe</code> inside.</li>
+        <li>If SmartScreen shows “Windows protected your PC”, click <strong>More info</strong> → <strong>Run anyway</strong>. A PC with Smart App Control turned on may block unsigned apps. It did not block Hamster in evaluation mode, but the turned-on state was not tested.</li>
+        <li>The pet appears at the bottom right of the work area, above the taskbar. The tray icon is in the hidden icons area. Use <strong>AI Connection</strong> in its menu.</li>
+      </ol>
+      <p>The hook files have the same names as on Mac, under <code>%USERPROFILE%</code> (for example <code>%USERPROFILE%\.claude\settings.json</code>). A <code>.cmd</code> helper is created in each tool’s <code>hamster</code> folder. To remove Hamster, choose <strong>Remove Hamster Hooks</strong>, quit Hamster, and delete the folder. Settings and rewards are in <code>%APPDATA%\Codex Hamster</code>.</p>
+      <p>Known limits: to update, download a new zip and replace the folder. The hook command was checked only in cmd.exe. If Claude Code runs hooks through PowerShell on Windows, it may fail, and how Codex, Cursor, Gemini CLI and Grok behave on Windows is not checked yet. This beta has had less testing than the Mac version.</p>` },
         { id: 'updates', heading: 'Updates', html: `
-      <p>The app checks the GitHub release once or twice a day. If there’s a new version, it shows up in the menu, and it installs only when you click it. Downloads are checked with a signature before they’re installed.</p>` },
+      <p>The Mac app checks the GitHub release once or twice a day. If there’s a new version, it shows up in the menu, and it installs only when you click it. Downloads are checked with a signature before they’re installed. The Windows beta does not check for updates, so download new zips yourself.</p>` },
         { id: 'remove', heading: 'Removing Hamster', html: `
       <ol>
         <li>Choose AI Connection → your tool → <strong>Remove Hamster Hooks</strong>. Do this for each tool you connected. It removes only Hamster’s hooks.</li>

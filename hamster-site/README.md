@@ -19,7 +19,7 @@ python3 -m http.server 4173 --bind 127.0.0.1 --directory hamster-site/dist
 
 ## 배포 방식
 
-Hamster는 `fbwndrud/hamster`에서 소스를 공개한다. 코드는 MIT 라이선스이고, 햄스터 그림은 다시 배포할 수 없다. 앱은 Apple 서명과 공증 없이 [GitHub Releases](https://github.com/fbwndrud/hamster/releases/latest)로 배포한다. 사이트의 다운로드 버튼은 그 최신 릴리스로 연결한다. 서명이 없으므로 사용자는 처음 열 때 시스템 설정의 **그래도 열기**를 거쳐야 하고, 앱은 응용 프로그램 폴더로 옮긴 뒤 열어야 업데이트가 동작한다. 순서와 확인 방법, 앱이 수정하는 설정 파일과 훅 이벤트, 업데이트·제거·개인정보는 설치 안내 페이지(`/install/`, `/en/install/`)에 있다. 버그 제보는 GitHub Issues로 받고, 후원은 선택 사항으로 Ko-fi 링크만 둔다. 보상은 없다.
+Hamster는 `fbwndrud/hamster`에서 소스를 공개한다. 코드는 MIT 라이선스이고, 햄스터 그림은 다시 배포할 수 없다. 앱은 Apple 서명과 공증 없이 [GitHub Releases](https://github.com/fbwndrud/hamster/releases/latest)로 배포한다. 사이트의 다운로드 버튼은 그 최신 릴리스로 연결한다. 서명이 없으므로 사용자는 처음 열 때 시스템 설정의 **그래도 열기**를 거쳐야 하고, 앱은 응용 프로그램 폴더로 옮긴 뒤 열어야 업데이트가 동작한다. Windows 11용 베타(x64, arm64 zip)도 같은 릴리스에 올리고, 설치 안내의 `Windows 베타` 항목에 받기, SmartScreen, 알려진 한계를 적는다. Windows 버전은 서명과 자동 업데이트가 없다. 순서와 확인 방법, 앱이 수정하는 설정 파일과 훅 이벤트, 업데이트·제거·개인정보는 설치 안내 페이지(`/install/`, `/en/install/`)에 있다. 버그 제보는 GitHub Issues로 받고, 후원은 선택 사항으로 Ko-fi 링크만 둔다. 보상은 없다.
 
 설치 안내의 훅 표는 `desktop-pet/codex-install.cjs`의 `providers`와 같아야 한다. 연결할 도구나 이벤트를 바꾸면 `template.mjs`의 `hookTable`과 `verify.cjs`, `verify-static.cjs`를 같이 고친다. 사이트의 보안 헤더(`_headers`)는 외부 스크립트와 분석 도구를 허용하지 않는다. Cloudflare Web Analytics를 붙일 때는 그 스크립트와 수집 주소만 CSP에 추가한다.
 

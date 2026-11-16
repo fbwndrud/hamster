@@ -1,13 +1,14 @@
 {
   "name": "local-codex-hamster",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": true,
-  "description": "Local macOS overlay for the Sunburst hamster",
+  "description": "Local desktop overlay for the Sunburst hamster",
   "main": "main.cjs",
   "scripts": {
     "start": "electron .",
     "test": "node --test test/*.test.cjs",
-    "package:mac": "bash package-mac.sh"
+    "package:mac": "bash package-mac.sh",
+    "package:win": "node package-win.cjs"
   },
   "devDependencies": {
     "electron": "45.2.3"

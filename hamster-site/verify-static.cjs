@@ -68,13 +68,13 @@ for (const [language, { home, install, homeUrl, installUrl }] of Object.entries(
     if (kind === 'home') {
       const download = html.slice(html.indexOf('id="download"'), html.indexOf('</section>', html.indexOf('id="download"')));
       assert.deepEqual(attrs(download, 'a').map(link => link.href), [releases, installUrl, source, support], label + ' download links');
-      assert.doesNotMatch(html, /준비 중|베타|in preparation|beta/i, label + ' still says beta');
+      assert.doesNotMatch(html, /준비 중|in preparation/i, label + ' still says in preparation');
     } else {
       assert.ok(html.includes(`href="${releases}"`) && html.includes('https://github.com/fbwndrud/hamster/issues'), label + ' links');
       const rows = [...html.matchAll(/<tr><th scope="row">[^<]+<\/th><td><code>([^<]+)<\/code><\/td><td>(.*?)<\/td><\/tr>/g)]
         .map(match => [match[1], [...match[2].matchAll(/<code>([^<]+)<\/code>/g)].map(code => code[1])]);
       assert.deepEqual(rows, hooks, label + ' hook table');
-      for (const id of ['download', 'move', 'open', 'connect', 'updates', 'remove', 'privacy', 'help']) {
+      for (const id of ['download', 'move', 'open', 'connect', 'windows', 'updates', 'remove', 'privacy', 'help']) {
         assert.ok(html.includes(`id="${id}"`), label + ' missing section ' + id);
       }
       assert.match(html, /SHA-256/);

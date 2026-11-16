@@ -1,5 +1,6 @@
 const fs = require('node:fs');
 const path = require('node:path');
+const {platform,ownedByCurrentUser,notWritableByOthers,isPrivateExecutable} = require('./platform.cjs');
 
 // Grok also runs the Claude and Cursor hook files, so their helpers moved to v3, which skips Grok's calls.
 const providers = {
@@ -11,8 +12,11 @@ const providers = {
     timeout:2,version:3,matchers:{Notification:'idle_prompt'}},
 };
 const versions = provider => Array.from({length:providers[provider].version},(_,index) => index+1);
-const bridge = (directory,provider,version) => path.join(directory,'hamster',`${provider === 'codex' ? 'codex' : 'ai'}-hook-v${version}`);
-const shellQuote = value => "'" + value.replaceAll("'","'\\''") + "'";
+// On Windows the hook command is a .cmd wrapper that starts this app's executable as plain Node on a copied bridge script.
+const bridge = (directory,provider,version) => path.join(directory,'hamster',
+  `${provider === 'codex' ? 'codex' : 'ai'}-hook-v${version}${platform.windows ? '.cmd' : ''}`);
+const bridgeScript = wrapper => wrapper.replace(/\.cmd$/,'.cjs');
+const shellQuote = value => platform.windows ? '"' + value + '"' : "'" + value.replaceAll("'","'\\''") + "'";
 const isObject = value => value !== null && typeof value === 'object' && !Array.isArray(value);
 const hookCommand = (directory,provider,version) => shellQuote(bridge(directory,provider,version)) + (provider === 'codex' ? '' : ' '+provider);
 const handlers = (group,flat) => flat ? [group] : group.hooks;
@@ -83,7 +87,18 @@ function bridgeCurrent(directory, provider = 'codex') {
   return hasInstalledCommands(directory,provider,[providers[provider].version]);
 }
 
-function installHooks(directory, source, provider = 'codex') {
+// Rewritten when its content differs so an app update that moves the executable repairs the wrapper.
+function writeWindowsBridge(wrapper, source, runtime) {
+  const script = bridgeScript(wrapper);
+  const content = fs.readFileSync(source);
+  if (!fs.existsSync(script) || !fs.readFileSync(script).equals(content)) fs.writeFileSync(script,content);
+  const escape = value => value.replaceAll('%','%%');
+  const lines = ['@echo off','set ELECTRON_RUN_AS_NODE=1',`"${escape(runtime)}" "${escape(script)}" %*`];
+  const text = lines.join('\r\n')+'\r\n';
+  if (!fs.existsSync(wrapper) || fs.readFileSync(wrapper,'utf8') !== text) fs.writeFileSync(wrapper,text);
+}
+
+function installHooks(directory, source, provider = 'codex', runtime = process.execPath) {
   const profile = providers[provider];
   const config = readConfig(directory,profile);
   const {hooks} = config.document;
@@ -92,16 +107,17 @@ function installHooks(directory, source, provider = 'codex') {
   fs.mkdirSync(path.dirname(destination),{recursive:true,mode:0o700});
   fs.mkdirSync(path.dirname(config.filename),{recursive:true,mode:0o700});
   const parent = fs.lstatSync(path.dirname(destination));
-  if (!parent.isDirectory() || parent.uid !== process.getuid() || (parent.mode & 0o022)) {
+  if (!parent.isDirectory() || !ownedByCurrentUser(parent) || !notWritableByOthers(parent)) {
     throw new Error('Hamster hook directory must be owned by the current user');
   }
+  if (platform.windows) writeWindowsBridge(destination,source,runtime);
   // The versioned executable remains stable after Codex approves this command.
-  if (!fs.existsSync(destination)) {
+  else if (!fs.existsSync(destination)) {
     fs.copyFileSync(source,destination,fs.constants.COPYFILE_EXCL);
     fs.chmodSync(destination,0o700);
   }
   const helper = fs.lstatSync(destination);
-  if (!helper.isFile() || helper.uid !== process.getuid() || (helper.mode & 0o722) !== 0o700) {
+  if (!helper.isFile() || !ownedByCurrentUser(helper) || !isPrivateExecutable(helper)) {
     throw new Error('Unexpected Hamster hook executable');
   }
 
@@ -110,7 +126,8 @@ function installHooks(directory, source, provider = 'codex') {
   for (const event of profile.events) {
     hooks[event] ??= [];
     if (hooks[event].some(group => handlers(group,profile.flat).some(hook => matches(hook,command)))) continue;
-    const handler = {type:'command',command,timeout:profile.timeout};
+    // A cold start of the Node-mode bridge took 917 ms on a fresh Windows 11 VM, so Windows gets three times the budget.
+    const handler = {type:'command',command,timeout:platform.windows ? profile.timeout*3 : profile.timeout};
     if (provider === 'gemini') handler.name = 'hamster-'+event;
     const matcher = profile.matchers?.[event];
     hooks[event].push(profile.flat ? handler : {...(matcher ? {matcher} : {}),hooks:[handler]});

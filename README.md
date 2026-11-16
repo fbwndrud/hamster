@@ -4,11 +4,11 @@
 
 # Hamster
 
-**A little hamster that keeps you company at the bottom of your Mac screen while your AI coding tools work.**
+**A little hamster that keeps you company at the bottom of your screen while your AI coding tools work.** For Mac, and as a beta for Windows 11.
 
-[Website](https://hamster-34x.pages.dev/en/) · [Download](https://github.com/fbwndrud/hamster/releases/latest) · [Install](#install) · [Privacy](#privacy) · [한국어](docs/readme/README.ko.md)
+[Website](https://hamster-34x.pages.dev/en/) · [Download](https://github.com/fbwndrud/hamster/releases/latest) · [Install](#install) · [Windows beta](#windows-beta) · [Privacy](#privacy) · [한국어](docs/readme/README.ko.md)
 
-![Latest release](https://img.shields.io/github/v/release/fbwndrud/hamster?label=release&color=f2a65a) ![macOS 13+ · Apple Silicon](https://img.shields.io/badge/macOS%2013%2B-Apple%20Silicon-8a6f5a) ![Code: MIT](https://img.shields.io/badge/code-MIT-6b8f71)
+![Latest release](https://img.shields.io/github/v/release/fbwndrud/hamster?label=release&color=f2a65a) ![macOS 13+ · Apple Silicon](https://img.shields.io/badge/macOS%2013%2B-Apple%20Silicon-8a6f5a) ![Windows 11 beta](https://img.shields.io/badge/Windows%2011-beta-8a6f5a) ![Code: MIT](https://img.shields.io/badge/code-MIT-6b8f71)
 
 </div>
 
@@ -38,7 +38,7 @@ Works with **Codex, Claude Code, Cursor Agent, Gemini CLI and Grok** through the
 
 ## Install
 
-You need a Mac with Apple silicon (M1 or later) and macOS 13 or later. Intel Macs are not supported.
+This section is for the Mac. You need a Mac with Apple silicon (M1 or later) and macOS 13 or later. Intel Macs are not supported. On Windows, see the [Windows beta](#windows-beta).
 
 ### 1. Download
 
@@ -46,8 +46,9 @@ Open the [latest release](https://github.com/fbwndrud/hamster/releases/latest) a
 
 | File on the release page | What it is |
 | --- | --- |
-| `Hamster-<version>.zip` | The app. Download this one. |
-| `Hamster-<version>.zip.sha256` | A checksum, if you want to [check your download](#check-your-download). |
+| `Hamster-<version>.zip` | The Mac app. Download this one on a Mac. |
+| `Hamster-<version>-win-x64.zip`, `Hamster-<version>-win-arm64.zip` | The Windows beta. See [Windows beta](#windows-beta). |
+| `*.sha256` | Checksums, if you want to [check your download](#check-your-download). |
 | `latest.json` | Read by the app to find updates. You don't need it. |
 | Source code (zip, tar.gz) | Added by GitHub. You don't need it to run the app. |
 
@@ -93,6 +94,23 @@ shasum -a 256 ~/Downloads/Hamster-*.zip
 2. Quit Hamster from its menu and move `Hamster.app` to the Trash.
 3. Optionally delete `~/Library/Application Support/Codex Hamster/` (settings and rewards) and the `hamster` folder in each tool's config folder, such as `~/.codex/hamster`.
 
+## Windows beta
+
+The Windows version is a **beta**. It is unsigned, has no automatic updates, and has been run for real only on Windows 11 arm64. The x64 build comes from the same code but has not been run on a real PC yet.
+
+1. Download `Hamster-<version>-win-x64.zip` (most PCs) or `Hamster-<version>-win-arm64.zip` (Arm PCs) from the [latest release](https://github.com/fbwndrud/hamster/releases/latest). To check it, compare `Get-FileHash $HOME\Downloads\Hamster-*-win-*.zip` in PowerShell with the matching `.sha256` file.
+2. Unzip it and move the `Hamster` folder somewhere you like, such as `C:\Users\<you>\Hamster`. Double-click `Hamster.exe` inside.
+3. If SmartScreen shows "Windows protected your PC", click **More info** → **Run anyway**. A PC with Smart App Control turned on may block unsigned apps. It did not block Hamster in evaluation mode, but the turned-on state was not tested.
+4. The pet appears at the bottom right of the work area, above the taskbar. The tray icon is in the hidden icons area. Choose **AI Connection → [tool] → Install [tool] Hooks…** from its menu.
+
+Hook files use the same names as on the Mac, under `%USERPROFILE%` (for example `%USERPROFILE%\.claude\settings.json`). A `.cmd` helper is created in each tool's `hamster` folder, and settings and rewards are in `%APPDATA%\Codex Hamster`. To remove it, choose **Remove Hamster Hooks** for each tool, quit Hamster, and delete the folder.
+
+Known limits:
+
+- To update, download a new zip and replace the folder. The Windows build does not check for updates.
+- The hook command was checked only in cmd.exe. If Claude Code runs hooks through PowerShell on Windows, it may fail. How Codex, Cursor Agent, Gemini CLI and Grok behave on Windows is not checked yet.
+- DPI scaling, auto-hidden taskbars and multiple monitors were not tested.
+
 ## What it changes on your Mac
 
 Connecting a tool adds a Hamster entry to that tool's user config and leaves your other settings alone. **Remove Hamster Hooks** takes it out again.
@@ -107,7 +125,7 @@ Connecting a tool adds a Hamster entry to that tool's user config and leaves you
 
 Grok also runs the Claude Code and Cursor hook files. The helper ignores those calls, so Grok work is counted once, as Grok.
 
-The hook helper ([`codex-hook.swift`](desktop-pet/codex-hook.swift)) sends only the event type and a hashed turn ID to a local socket. Install logic is in [`codex-install.cjs`](desktop-pet/codex-install.cjs). Settings and rewards are stored in `~/Library/Application Support/Codex Hamster/`.
+The hook helper ([`codex-hook.swift`](desktop-pet/codex-hook.swift) on Mac, [`hook-bridge.cjs`](desktop-pet/hook-bridge.cjs) on Windows) sends only the event type and a hashed turn ID to a local socket or named pipe. Install logic is in [`codex-install.cjs`](desktop-pet/codex-install.cjs). Settings and rewards are stored in `~/Library/Application Support/Codex Hamster/`.
 
 ## Privacy
 
@@ -117,9 +135,9 @@ The hook helper ([`codex-hook.swift`](desktop-pet/codex-hook.swift)) sends only 
 
 ## Updates
 
-When a new release is available, the menu shows **Install Update**. Nothing is downloaded until you click it. The app then downloads the release and replaces itself only after checking that the manifest carries a valid Ed25519 signature and that the file matches the signed SHA-256 and size. If the new version fails to start, it rolls back.
+On the Mac, when a new release is available, the menu shows **Install Update**. Nothing is downloaded until you click it. The app then downloads the release and replaces itself only after checking that the manifest carries a valid Ed25519 signature and that the file matches the signed SHA-256 and size. If the new version fails to start, it rolls back.
 
-The public key that checks the signature is in [`distribution.cjs`](desktop-pet/distribution.cjs). Only the matching private key can sign a release, and it is never in this repository.
+The Windows beta does not update itself. The public key that checks the Mac signature is in [`distribution.cjs`](desktop-pet/distribution.cjs). Only the matching private key can sign a release, and it is never in this repository.
 
 ## Feedback
 
